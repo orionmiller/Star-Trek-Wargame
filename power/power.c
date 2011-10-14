@@ -51,6 +51,10 @@ time_t tm;
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;
 
+/* For Mutex Locking */
+static pthread_mutexattr_t attr;
+static pthread_mutex_t mutex;
+
 void *request_handler(void *in);
 void send_packet(struct PowerHeader *, int confd);
 int reservePowerRemaining();
@@ -162,6 +166,9 @@ void power_startup()
       perror("Listening Error");
       return;
    }
+   
+   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+   pthread_mutex_init(&mutex, &attr);
 
    /* Print to Log File? */
    tm = time(NULL);
@@ -237,10 +244,12 @@ void power_shutdown()
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
    write(logfd, ": --- Power Service Shutting Down ---\n", 38);
    
+   /* Wait for all Threads to complete? */
+   
    /* Contact all Services to Shutdown */
    for(tmp = servs; tmp; tmp = tmp->next)
    {
-      /* TODO: SIGKILL OR SIGTSTP ?*/
+      /* TODO: SIGKILL OR SIGSTOP ?*/
       kill(tmp->pid, SIGKILL);
    }
    
@@ -254,6 +263,8 @@ void power_shutdown()
       free(ptr);
       ptr = tmp;
    }
+   
+   pthread_mutex_destroy(&mutex);
 }
 
 /* 
@@ -436,6 +447,7 @@ int transfer_power(int amt, int src, int dest)
       return -1;
    }
 
+   pthread_mutex_lock(&mutex);
    /* Get the Source and Dest pointers */
    for(ptr = servs; ptr; ptr = ptr->next)
    {
@@ -447,6 +459,7 @@ int transfer_power(int amt, int src, int dest)
 
    if(!s || !d)
    {
+      pthread_mutex_unlock(&mutex);
       /* Invalid Source or Dest Service Supplied */
       sprintf(tmp, ": Invalid Source (%d) or Destination (%d) Ids. May not have been registered?\n", src, dest);
       write(logfd, tmp, strlen(tmp));
@@ -458,11 +471,12 @@ int transfer_power(int amt, int src, int dest)
    {
       /* Increase Allocation for Dest and Don't Touch Src */
       d->pwr_alloc += amt;
+      
+      pthread_mutex_unlock(&mutex);
 
       sprintf(tmp, ": %d Additional Units of Power Allocated to Service %d\n",
          amt, src);
-      write(logfd, tmp, strlen(tmp));
-      
+      write(logfd, tmp, strlen(tmp));      
    }
    else
    {
@@ -478,8 +492,8 @@ int transfer_power(int amt, int src, int dest)
       // IF Source's Power Allocation is now 0 (Zero) THEN
       if(s->pwr_alloc <= 0)
       {
-         // Send SIGTSTP To Source's Process
-         kill(s->pid, SIGTSTP);
+         // Send SIGSTOP To Source's Process
+         kill(s->pid, SIGSTOP);
          
          tm = time(NULL);
          write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
@@ -502,6 +516,7 @@ int add_power(int amt, int dest)
    
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
 
+   pthread_mutex_lock(&mutex);
    for(d = servs; d->id != dest; d = d->next)
       ;
 
@@ -511,6 +526,8 @@ int add_power(int amt, int dest)
       /* Invalid Source or Dest Service Supplied */
       sprintf(tmp, ": Invalid Destination (%d) Id. May not have been registered?\n", dest);
       write(logfd, tmp, strlen(tmp));
+      pthread_mutex_unlock(&mutex);
+      
       return -1;
    }
 
@@ -531,6 +548,8 @@ int add_power(int amt, int dest)
       amt = (rp - amt >= 0) ? amt : rp;
       d->pwr_alloc += amt;
       
+      pthread_mutex_unlock(&mutex);
+      
       tm = time(NULL);
       write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
       sprintf(tmp, ": Added %d Units of Power to Service %d Allocation\n",
@@ -541,6 +560,7 @@ int add_power(int amt, int dest)
    }
    else
    {
+      pthread_mutex_unlock(&mutex);
       amt = 0;
       sprintf(tmp, ": Added %d Units of Power to Service %d Allocation\n",
          amt, dest);
@@ -562,6 +582,8 @@ int free_power(int amt, int dest)
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
    
+   pthread_mutex_lock(&mutex);
+   
    for(d = servs; d->id != dest; d = d->next)
       ;
    
@@ -571,17 +593,21 @@ int free_power(int amt, int dest)
       sprintf(tmp, ": Invalid Destination (%d) Id. May not have been registered?\n", 
          dest);
       write(logfd, tmp, strlen(tmp));
+      pthread_mutex_unlock(&mutex);
+      
       return -1;
    }
 
    amt = (d->pwr_alloc - amt >= 0) ? amt : d->pwr_alloc;
    d->pwr_alloc -= amt;
    
+   pthread_mutex_unlock(&mutex);
+   
    /* IF Destination's Allocation is <= 0 THEN */
    if(d->pwr_alloc <= 0)
    {
-      /* Send SIGTSTP to Destination's Process Id */
-      kill(d->pid, SIGTSTP);
+      /* Send SIGSTOP to Destination's Process Id */
+      kill(d->pid, SIGSTOP);
       
       sprintf(tmp, ": Destination Service %d has lost ALL Power and is now Stopped\n",
          dest);
@@ -608,6 +634,7 @@ int register_service(int id, int pId)
          return 0;
    }
 
+   pthread_mutex_lock(&mutex);
    if(!ptr)
    {
       ptr = (Service *)malloc(sizeof(struct srvcs_struct));
@@ -624,7 +651,8 @@ int register_service(int id, int pId)
    ptr->id = id;
    ptr->pid = pId;
    ptr->pwr_alloc = ((resPwr - INIT_POWER_ALLOC) >= 0) ? INIT_POWER_ALLOC : INIT_POWER_ALLOC - resPwr;
-
+   pthread_mutex_unlock(&mutex);
+   
    return ptr->id;
 }
 
@@ -632,6 +660,7 @@ int unregister_service(int id)
 {
    Service *ptr, *prev;
    
+   pthread_mutex_lock(&mutex);
    for(ptr = prev = servs; ptr; prev = ptr, ptr = ptr->next)
    {
       if(ptr->id == id)
@@ -641,7 +670,7 @@ int unregister_service(int id)
          return id;
       }
    }
-
+   pthread_mutex_unlock(&mutex);
    return 0;
 }
 

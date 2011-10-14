@@ -26,7 +26,7 @@ nav-$(EXEC_SUFFIX): nav.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o nav-$(EXEC_SUFFIX).o nav.c -Wpacked
 
 snav-$(EXEC_SUFFIX): snav.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o snav-$(EXEC_SUFFIX).o snav.c smartalloc.c nav-$(EXEC_SUFFIX).o
+	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o snav-$(EXEC_SUFFIX).o snav.c ../includes/smartalloc.c nav-$(EXEC_SUFFIX).o
 
 clean:
 	rm -rf nav-* snav-*

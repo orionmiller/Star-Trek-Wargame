@@ -1,12 +1,12 @@
 /**
-Main "Engine" service. To be compiled before given to contestants. 
+Main "Navigation" service. To be compiled before given to contestants. 
 
-Contestants must use and implement "eng.c"
+Contestants must use and implement "nav.c"
 
-No main function included (the contestants will have this). Replaced with "engine_startup()".
+No main function included (the contestants will have this). Replaced with "navigation_startup()".
 Therefor, must compile with "gcc -c" option.
 
-Compile as:    gcc -c eng.c -o pwrd.o -lpthread -Wpacked
+Compile as:    gcc -c nav.c -o pwrd.o -lpthread -Wpacked
   or use the Makefile
 
 @author Dirk Cummings
@@ -15,7 +15,7 @@ Compile as:    gcc -c eng.c -o pwrd.o -lpthread -Wpacked
 @version Fall 2011
 */
 
-#include "eng.h"
+#include "nav.h"
 #include <time.h>
 
 #define MAX_SHIP_WARP 9
@@ -38,7 +38,7 @@ time_t tm;
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;
 
-/* Internal Engine Allocation */
+/* Internal Navigation Allocation */
 int pwr_alloc;
 int tot_dmg;
 /* Heat Generated for impulse speeds using log10(1/16) / log10(imp_actual) */
@@ -53,14 +53,14 @@ double warp_heat[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487,
 
 int getPwrAlloc(void);
 void *request_handler(void *in);
-void print_engine_status(void);
+void print_navigation_status(void);
 
 /* 
-   Engine Service Function Structure Declaration.
+   Navigation Service Function Structure Declaration.
    
-   Initialize to eng.c's associated functions
+   Initialize to nav.c's associated functions
 */
-struct EngineFuncs eng_funcs = {&request_handler};
+struct NavigationFuncs nav_funcs = {&request_handler};
 
 void sig_handler(int sig)
 {
@@ -74,7 +74,7 @@ void sig_handler(int sig)
    Main entry point into the "service". Must do house-keeping before starting the 
       service's logic.
 */
-void engine_startup()
+void navigation_startup()
 {
    /* SIGINT Handler */
    struct sigaction sa;
@@ -105,7 +105,7 @@ void engine_startup()
 
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp, ": --- Engine Service Startup ---\n");
+   sprintf(tmp, ": --- Navigation Service Startup ---\n");
    write(logfd, tmp, strlen(tmp));
 
    /* Install SignHandler */
@@ -173,7 +173,7 @@ void engine_startup()
    /* Print to Log File? */
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp, ": Engine Service at 127.0.0.1 Listening on TCP Port %d\n", httpPt);
+   sprintf(tmp, ": Navigation Service at 127.0.0.1 Listening on TCP Port %d\n", httpPt);
    write(logfd, tmp, strlen(tmp));
 
    /* Setup timers */
@@ -220,7 +220,7 @@ void engine_startup()
 
       if(pthread_create(&tid, 
                         NULL, 
-                        eng_funcs.request_handler, 
+                        nav_funcs.request_handler, 
                         (void *)&tcpfd) != 0 && errno != EINTR)
       {
          perror("Error Creating new Thread for Incomming Request");
@@ -230,11 +230,11 @@ void engine_startup()
 }
 
 /* 
-   Engine Shutdown method. Should clean up the "system" before exiting 
+   Navigation Shutdown method. Should clean up the "system" before exiting 
       this program. If there are errors during cleanup, "shutdown" anyways
       by simply returning. Let calling functions handel errors.
 */
-void engine_shutdown()
+void navigation_shutdown()
 {
    char tmp[100];
    tm = time(NULL);
@@ -243,7 +243,7 @@ void engine_shutdown()
    pwrhd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    pwrhd->ver = 1;
    pwrhd->len = sizeof(struct PowerHeader);
-   pwrhd->src_svc = ENGINES_SVC_NUM;
+   pwrhd->src_svc = NAVIGATION_SVC_NUM;
    pwrhd->dest_svc = POWER_SVC_NUM;
    pwrhd->req_type_amt = (UNREG_NEW_SVC << 4);
    pwrhd->pid = getpid();
@@ -255,7 +255,7 @@ void engine_shutdown()
    write(pwr_sockfd, (void *)tmp, 1);
 
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp,": --- Engine Service Shutting Down ---\n");
+   sprintf(tmp,": --- Navigation Service Shutting Down ---\n");
    write(logfd, tmp, strlen(tmp));
    
    close(logfd);
@@ -263,7 +263,7 @@ void engine_shutdown()
 }
 
 /*
-   Connect to the Power Service and get the Engine Service's current Power 
+   Connect to the Power Service and get the Navigation Service's current Power 
       Allocation.
 
    SETS the current power allocation for this service.
@@ -304,7 +304,7 @@ int getPwrAlloc()
    pwrhd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    pwrhd->ver = 1;
    pwrhd->len = sizeof(struct PowerHeader);
-   pwrhd->src_svc = ENGINES_SVC_NUM;
+   pwrhd->src_svc = NAVIGATION_SVC_NUM;
    pwrhd->dest_svc = POWER_SVC_NUM;
    pwrhd->req_type_amt = (REG_NEW_SVC << 4);
    pwrhd->pid = getpid();
@@ -365,7 +365,7 @@ void *request_handler(void *in)
 }
 
 /* Print out current usages for all services */
-void print_engine_status()
+void print_navigation_status()
 {
    fflush(stdout);
 }

@@ -41,6 +41,7 @@ volatile sig_atomic_t testing = 0;
 /* Internal Engine Allocation */
 int pwr_alloc;
 int tot_dmg;
+
 /* Heat Generated for impulse speeds using log10(1/16) / log10(imp_actual) */
 double imp_heat[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
 /* 
@@ -50,6 +51,10 @@ double imp_heat[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
 */
 double warp_heat[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487, 
                      17.7183, 19.4817, 22.3891};
+
+/* For Mutex Locking */
+static pthread_mutexattr_t attr;
+static pthread_mutex_t mutex;
 
 int getPwrAlloc(void);
 void *request_handler(void *in);
@@ -169,6 +174,10 @@ void engine_startup()
       perror("Listening Error");
       return;
    }
+   
+   /* Set pthread mutex attributes and initialize mutex */
+   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+   pthread_mutex_init(&mutex, &attr);
 
    /* Print to Log File? */
    tm = time(NULL);

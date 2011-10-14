@@ -1,10 +1,10 @@
 /**
-Your ship's version of a engine system. Include and implement the engine's
+Your ship's version of a navigation system. Include and implement the navigation's
 functions and security features.
 
 Must pass base functionality to be considered "up"
 
-Use the Makefile to compile or use:    gcc eng.o seng.c -o seng.o -lpthread
+Use the Makefile to compile or use:    gcc nav.o snav.c -o snav.o -lpthread
 
 @author Dirk Cummings
 @author Orion Miller
@@ -12,7 +12,7 @@ Use the Makefile to compile or use:    gcc eng.o seng.c -o seng.o -lpthread
 @version Fall 2011
 */
 
-#include "eng.h"
+#include "nav.h"
 
 void engageImpulse(void);
 void impulseSpeed(void);
@@ -23,14 +23,14 @@ void reqHandler(void *);
 int main(int argc, char **argv)
 {
    // Setup the Function Pointers
-//   eng_funcs.request_handler = &reqHandler;
+//   nav_funcs.request_handler = &reqHandler;
 
    printf("Starting Up\n");
-   engine_startup();
+   navigation_startup();
    printf("Started\n");
 
    printf("Shutting Down\n");
-   engine_shutdown();
+   navigation_shutdown();
    printf("Shut Down\n");
    
    return 0;

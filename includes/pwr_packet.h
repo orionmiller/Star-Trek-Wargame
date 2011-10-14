@@ -8,8 +8,7 @@
 #define COMMS_SVC_NUM 3
 #define NAVIGATION_SVC_NUM 4
 #define SHIELDS_SVC_NUM 5
-#define IMPULSE_ENGINES_SVC_NUM 6
-#define WARP_ENGINES_SVC_NUM 7
+#define ENGINES_SVC_NUM 6
 
 /* Power Service Request Types */
 /* Request De/Allocation of Reserve Power */

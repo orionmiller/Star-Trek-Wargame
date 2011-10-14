@@ -26,7 +26,7 @@ eng-$(EXEC_SUFFIX): eng.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o eng-$(EXEC_SUFFIX).o eng.c -Wpacked
 
 seng-$(EXEC_SUFFIX): seng.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o seng-$(EXEC_SUFFIX).o seng.c smartalloc.c eng-$(EXEC_SUFFIX).o
+	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o seng-$(EXEC_SUFFIX).o seng.c ../includes/smartalloc.c eng-$(EXEC_SUFFIX).o
 
 clean:
 	rm -rf eng-* seng-*

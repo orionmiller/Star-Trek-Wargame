@@ -13,17 +13,17 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include "smartalloc.h"
-#include "pwr_packet.h"
+#include "../includes/smartalloc.h"
+#include "../includes/pwr_packet.h"
 
-/* The static port for the Main Engine Service to run on */
+/* The static port for the Main Navigation Service to run on */
 #define STATIC_ENG_PORT 3723
 /* See "man listen(2)" for second parameter */
 #define BACKLOG 15
 /* Max Buffer for receiving data from connection */
 #define MAXBUF 4096
 /* Log file Location */
-#define LOG_FILE_LOCATION "./logs/engine.log"
+#define LOG_FILE_LOCATION "./logs/navigation.log"
 #define LOG_FILE_PERMS 0666
 
 /* 
@@ -36,7 +36,7 @@
    
    Do not delcare another instance of this structure.
 */ 
-extern struct EngineFuncs { 
+extern struct NavigationFuncs { 
    /*
       For receiving and processing data from a socket. This function will be 
          called in a new thread once a successful connection has been made 
@@ -64,7 +64,7 @@ extern struct EngineFuncs {
    This function can not be replaced and must be called to start your service
       implementation.
 */
-extern void engine_startup(void);
+extern void navigation_startup(void);
 
 /*
    Main exit to this service. Must be called to perform house-keeping cleanup
@@ -73,7 +73,7 @@ extern void engine_startup(void);
    This function can not be replaced and must be called before your service
       exits.
 */
-extern void engine_shutdown(void);
+extern void navigation_shutdown(void);
 
 /*
    Startup the impulse drive with initial speed. Possible speeds are indexed

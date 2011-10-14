@@ -27,12 +27,7 @@ int main(int argc, char **argv)
 
    printf("Starting Up\n");
    engine_startup();
-   printf("Started\n");
 
-   printf("Shutting Down\n");
-   engine_shutdown();
-   printf("Shut Down\n");
-   
    return 0;
 }
 

@@ -13,8 +13,8 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include "smartalloc.h"
-#include "pwr_packet.h"
+#include "../includes/smartalloc.h"
+#include "../includes/pwr_packet.h"
 
 /* See "man listen(2)" for second parameter */
 #define BACKLOG 15

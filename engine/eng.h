@@ -13,8 +13,8 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include "smartalloc.h"
-#include "pwr_packet.h"
+#include "../includes/smartalloc.h"
+#include "../includes/pwr_packet.h"
 
 /* The static port for the Main Engine Service to run on */
 #define STATIC_ENG_PORT 3723
@@ -23,7 +23,7 @@
 /* Max Buffer for receiving data from connection */
 #define MAXBUF 4096
 /* Log file Location */
-#define LOG_FILE_LOCATION "./logs/engine.log"
+#define LOG_FILE_LOCATION "../logs/engine.log"
 #define LOG_FILE_PERMS 0666
 
 /* 
