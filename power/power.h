@@ -21,7 +21,7 @@
 /* Max Buffer for receiving data from connection */
 #define MAXBUF 4096
 /* Log file Location */
-#define LOG_FILE_LOCATION "./logs/power.log"
+#define LOG_FILE_LOCATION "../logs/power.log"
 #define LOG_FILE_PERMS 0666
 
 /*
