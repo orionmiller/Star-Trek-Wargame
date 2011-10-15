@@ -3,3 +3,6 @@
 
 # Log Files #
 *.log
+
+# Temp / Swap Files #
+*.swp
