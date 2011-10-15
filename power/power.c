@@ -324,7 +324,7 @@ void *request_handler(void *in)
          dest = ptr;
    }
    
-   if((!src || !dest) && req_type != REG_NEW_SVC)
+   if((!src || !dest) && (pwrhd->dest_svc != POWER_SVC_NUM))
    {
       /* Error --> DUMP & Report */
       write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
@@ -375,20 +375,23 @@ void *request_handler(void *in)
          sprintf(tmp, ": New Service With Id %d Now Registered and Upped with %d Allocated\n", 
             src->id, src->pwr_alloc);
          write(logfd, tmp, strlen(tmp));
-      
-         /* Send Update to pwrhd->dest_svc */
-         msg.dest_svc = pwrhd->src_svc;
-         msg.req_type_amt = (REG_SVC_ALLOC << 4);
-         msg.alloc = src->pwr_alloc;
-      
-         send_packet(&msg, confd);
       }
       else
       {
+         for(src = servs; src->id != pwrhd->src_svc; src = src->next)
+            ;
+
          write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
          sprintf(tmp, ": Service (%d) Already Registered\n", src->id);
          write(logfd, tmp, strlen(tmp));
-      }
+      }         
+   
+      /* Send Update to pwrhd->dest_svc */
+      msg.dest_svc = pwrhd->src_svc;
+      msg.req_type_amt = (REG_SVC_ALLOC << 4);
+      msg.alloc = src->pwr_alloc;
+
+      send_packet(&msg, confd);
    }
    else if(req_type == UNREG_NEW_SVC)
    {
@@ -412,7 +415,7 @@ void *request_handler(void *in)
       
       send_packet(&msg, confd);
    }
-
+   
    close(confd);
    pthread_exit(NULL);
    return (NULL);
@@ -423,7 +426,6 @@ void *request_handler(void *in)
 */
 void send_packet(struct PowerHeader *msg, int confd)
 {
-   printf("sending packet\n");
    write(confd, (void *)msg, sizeof(struct PowerHeader));
 }
 
@@ -633,8 +635,9 @@ int register_service(int id, int pId)
       if(ptr->id == id || ptr->pid == pId)
          return 0;
    }
-
+   
    pthread_mutex_lock(&mutex);
+
    if(!ptr)
    {
       ptr = (Service *)malloc(sizeof(struct srvcs_struct));
@@ -647,12 +650,10 @@ int register_service(int id, int pId)
    }
 
    bzero(ptr, sizeof(struct srvcs_struct));
-
    ptr->id = id;
    ptr->pid = pId;
    ptr->pwr_alloc = ((resPwr - INIT_POWER_ALLOC) >= 0) ? INIT_POWER_ALLOC : INIT_POWER_ALLOC - resPwr;
    pthread_mutex_unlock(&mutex);
-   
    return ptr->id;
 }
 
@@ -665,8 +666,20 @@ int unregister_service(int id)
    {
       if(ptr->id == id)
       {
-         prev->next = ptr->next;
-         free(ptr);
+         /* IF this IS the last service in the list THEN */
+         if(ptr->next == NULL && ptr == prev)
+         {
+            free(ptr);
+            servs = NULL;
+         }
+         else
+         {
+            prev->next = ptr->next;
+            free(ptr);
+         }
+         
+         pthread_mutex_unlock(&mutex);
+         
          return id;
       }
    }
@@ -696,6 +709,6 @@ int reservePowerRemaining()
 
    for(ptr = servs; ptr; ptr = ptr->next)
       curUse += ptr->pwr_alloc;
-
+      
    return MAX_SHIP_POWER - curUse;
 }

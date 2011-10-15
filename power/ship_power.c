@@ -26,7 +26,6 @@ int main(int argc, char **argv)
 
    printf("Starting Up\n");
    power_startup();
-   printf("Started\n");
 
    printf("Shutting Down\n");
    power_shutdown();

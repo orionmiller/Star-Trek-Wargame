@@ -25,7 +25,6 @@ Compile as:    gcc -c eng.c -o pwrd.o -lpthread -Wpacked
 
 /* File Descriptors for Socketing */
 int sockfd;
-int pwr_sockfd;
 int httpPt;
 
 /* Log File Descriptor */
@@ -191,7 +190,7 @@ void engine_startup()
    testtv.it_value.tv_sec = 60;
    testtv.it_value.tv_usec = 0;
    resttv.it_value.tv_sec = resttv.it_value.tv_usec = 0;
-
+   
    /* Infinite loop for prompt? */
    while(running)
    {
@@ -245,9 +244,36 @@ void engine_startup()
 */
 void engine_shutdown()
 {
+   struct sockaddr_in pwr_sck;
+   /* Power header */
    char tmp[100];
    tm = time(NULL);
    struct PowerHeader *pwrhd;
+   int pwr_sockfd;
+
+   /* Connect to Power Service and register self */
+   bzero(&pwr_sck, sizeof(pwr_sck));
+   pwr_sck.sin_family = AF_INET;
+
+   if(inet_pton(AF_INET, "127.0.0.1", &(pwr_sck.sin_addr)) > 0)
+      pwr_sck.sin_port = (STATIC_PWR_PORT);
+   else
+   {
+      perror("Bad IP Address");
+      return;
+   }
+   
+   if((pwr_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+   {
+      perror("Socket Error");
+      return;
+   }
+
+   if(connect(pwr_sockfd, (struct sockaddr *)&pwr_sck, sizeof(pwr_sck)) == -1)
+   {
+      perror("Power Connecting Error");
+      return;
+   }
 
    pwrhd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    pwrhd->ver = 1;
@@ -267,6 +293,9 @@ void engine_shutdown()
    sprintf(tmp,": --- Engine Service Shutting Down ---\n");
    write(logfd, tmp, strlen(tmp));
    
+   free(pwrhd);
+   
+   close(pwr_sockfd);
    close(logfd);
    close(sockfd);
 }
@@ -285,6 +314,7 @@ int getPwrAlloc()
    /* Power header */
    struct PowerHeader *pwrhd;
    char tmp[1];
+   int pwr_sockfd;
 
    /* Connect to Power Service and register self */
    bzero(&pwr_sck, sizeof(pwr_sck));
@@ -307,6 +337,7 @@ int getPwrAlloc()
    if(connect(pwr_sockfd, (struct sockaddr *)&pwr_sck, sizeof(pwr_sck)) == -1)
    {
       perror("Power Connecting Error");
+      close(pwr_sockfd);
       return -1;
    }
    

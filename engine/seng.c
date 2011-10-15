@@ -26,7 +26,11 @@ int main(int argc, char **argv)
 //   eng_funcs.request_handler = &reqHandler;
 
    printf("Starting Up\n");
-   engine_startup();
+   engine_startup();   
+   
+   printf("Shutting Down\n");
+   engine_shutdown();
+   printf("Shut Down\n");
 
    return 0;
 }
