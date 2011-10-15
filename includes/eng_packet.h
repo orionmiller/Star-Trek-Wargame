@@ -2,14 +2,25 @@
 #define STATIC_ENG_PORT 3723
 
 /* Definitions for use in an Engine Header Packet */
-#define IMPULSE_DRIVE 0
-#define WARP_DRIVE 1
+#define SHUTDWN_DRIVE 0
+#define IMPULSE_DRIVE 1
+#define WARP_DRIVE 2
 #define REQ_INIT_IMPLS_DRV 0
 #define REQ_INIT_WARP_DRV 1
 #define REQ_INCR_IMPLS 2
 #define REQ_DECR_IMPLS 3
 #define REQ_INCR_WARP 4
 #define REQ_DECR_WARP 5
+#define REQ_REPORT 6
+
+/* Definitions for speed indexes */
+#define IMP_ALL_STOP 0
+#define IMP_QTR 1
+#define IMP_THRD 2
+#define IMP_HALF 3
+#define IMP_TWO_THRD 4
+#define IMP_THR_QTR 5
+#define IMP_FULL 6
 
 /*
    NOTES:
@@ -33,7 +44,7 @@
   |--------------------------------------------------|
    33          36          40          44          48
   |--------------------------------------------------|
-  |                     Padding                      |
+  |          Damage        |        Radiation        |
   |--------------------------------------------------|
 
    Where
@@ -41,8 +52,16 @@
          Can be either IMPULSE_DRIVE, WARP_DRIVE, or others if you add
       - Request Type:
          Can be either of the #defines above with 'REQ_' prefixes
+         REQ_REPORT: Request the current status of the engines. Returns:
+            - Which engine is engaged (in Eng Type; SHUTDWN_DRIVE if neither
+               engine is on)
+            - The current speed (in Amount)
+            - 
       - Amount:
-         The Unsigned Amount of Speed to increase, decrease, or initialize
+         The Unsigned Amount of Speed to increase, decrease, or initialize.
+         Use the Definitions above with prefix 'IMP_' for impulse indexing
+            speeds. For Warp, simply use the Warp Number (1, 2, ... 9) where
+            a Warp of 0 is full stop.
       - Padding
          Whatever
    You can use and modify the following structure to overlay on to incomming 
@@ -62,6 +81,7 @@ struct EngineHeader {
    uint8_t ver;         /* The Version of the Packet */
    uint8_t len;         /* The length of the packet (in bytes) incase you add to it */
    uint8_t eng_type_req; /* The Type of Engine and the Type of Request */
-   uint8_t amt;
-   uint16_t padding;
+   uint8_t amt;         /* The amount requested or reported (ususlly speed) */
+   uint8_t dmg;         /* Damage Inflicted on Engine Core */
+   uint8_t rad;         /* Current Level of Radiation in Engine Core */
 };
