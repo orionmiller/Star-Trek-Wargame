@@ -19,20 +19,16 @@ Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
 #include "eng.h"
 #include <time.h>
 
-#define MAX_SHIP_WARP 9
-#define MAX_SHIP_DMG 25
-#define DMG_PER_UNIT_HEAT 1
+#define MAX_IMPL_SPEED 6
+#define MAX_WARP_SPEED 9
+#define MAX_SHIP_DMG 35
+#define DMG_REPAIR_TIME 15
+#define DMG_REPAIR_AMT 5
+#define DMG_PER_UNIT_RAD 1
 #define COOLING_RATE 16
-#define IMP_ENG_POWER_USE 4
-#define WARP1_POWER 5
-#define WARP2_POWER 6
-#define WARP3_POWER 7
-#define WARP4_POWER 8
-#define WARP5_POWER 9
-#define WARP6_POWER 10
-#define WARP7_POWER 11
-#define WARP8_POWER 12
-#define WARP9_POWER 13
+
+/* Power Usages for Speeds where 0th Index is Impulse */
+int eng_pwr_use[10] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 
 /* File Descriptors for Socketing */
 int sockfd;
@@ -41,12 +37,10 @@ int httpPt;
 /* Log File Descriptor */
 int logfd;
 
-/* Temp Time */
-time_t tm;
-
 /* Control termination of main loop */
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;
+volatile sig_atomic_t repair_dmg_time = DMG_REPAIR_TIME;
 
 /* Internal Data Storage for Current Status */
 typedef struct status_struct Status;
@@ -57,18 +51,19 @@ struct status_struct {
    int eng_dmg;
    int pwr_alloc;
    int tot_rad;
+   time_t eng_start, eng_stop;
 };
 
 Status estat = {0, 0, 0, 0, 0};
 
 /* Heat Generated for impulse speeds using log10(1/16) / log10(imp_actual) */
-double imp_heat[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
+double imp_rad[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
 /*
    Heat Generated for warp speeds using
    - Below Warp 6: (1 + log10(warp) / log10(5)) + 8
    - Warp 6 and Above (e^((warp - 5) / 2) + 15
 */
-double warp_heat[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487,
+double warp_rad[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487,
                      17.7183, 19.4817, 22.3891};
 
 /* For Mutex Locking */
@@ -80,6 +75,7 @@ void *request_handler(void *in);
 void send_packet(struct EngineHeader *, int);
 void req_report(int confd);
 void print_engine_status(void);
+void assess_damage(void);
 
 /*
    Engine Service Function Structure Declaration.
@@ -102,6 +98,9 @@ void sig_handler(int sig)
 */
 void engine_startup()
 {
+   /* Temp Time */
+   time_t tm;
+   
    /* SIGINT Handler */
    struct sigaction sa;
 
@@ -214,6 +213,8 @@ void engine_startup()
    testtv.it_value.tv_sec = 60;
    testtv.it_value.tv_usec = 0;
    resttv.it_value.tv_sec = resttv.it_value.tv_usec = 0;
+   
+   estat.eng_stop = -1;
 
    /* Infinite loop for prompt? */
    while(running)
@@ -231,6 +232,13 @@ void engine_startup()
       {
          /* Install reset timer */
          setitimer(ITIMER_REAL, &resttv, NULL);
+         
+         /* Quickly run Engine maintenance */
+         /* IF damange was done THEN */
+         if(!estat.eng_dmg)
+            repair_dmg_time--;
+
+         assess_damage();
 
          /* Create new thread to handle / process test functions */
 
@@ -268,6 +276,7 @@ void engine_startup()
 */
 void engine_shutdown()
 {
+   time_t tm;
    struct sockaddr_in pwr_sck;
    /* Power header */
    char tmp[100];
@@ -413,6 +422,7 @@ int getPwrAlloc()
 void *request_handler(void *in)
 {
    int confd = *((int *) in);
+   time_t tm;
    int rtn;
    char inBuf[MAXBUF];
    char tmp[100];
@@ -453,64 +463,72 @@ void *request_handler(void *in)
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
    
-   switch(req_type)
+   if(estat.eng_dmg >= MAX_SHIP_DMG && req_type != REQ_REPORT)
    {
-      case REQ_INIT_IMPLS_DRV:
-         rtn = engage_impulse(hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Impulse Engines Started Up & Speed Now %d\n", rtn)
-            : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_INIT_WARP_DRV:
-         rtn = engage_warp(hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Warp Engines Started Up & Speed Now %d\n", rtn)
-            : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_INCR_IMPLS:
-         rtn = impulse_speed(hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Impulse Speed Increased to %d\n", rtn) : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_DECR_IMPLS:
-         rtn = impulse_speed(-1 * hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Impulse Speed Decreased to %d\n", rtn) : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_INCR_WARP:
-         rtn = warp_speed(hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Warp Speed Increased to %d\n", rtn) : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_DECR_WARP:
-         rtn = warp_speed(-1 * hd->amt);
-         (rtn != -1) ? 
-            sprintf(tmp, ": Warp Speed Decreased to %d\n", rtn) : 0;
-         write(logfd, tmp, strlen(tmp));
-         break;
-      case REQ_REPORT:
-         eng_funcs.request_report(confd);
-         sprintf(tmp, ": Request Report Received\n");
-         write(logfd, tmp, strlen(tmp));
-         break;
-      default:
-         /* Error State */
-         sprintf(tmp, ": Error Processing Packet Request. Dropping Request - ");
-         write(logfd, tmp, strlen(tmp));
-         write(logfd, inBuf, strlen(inBuf));
-         write(logfd, "\n", 1);
-         break;
+      sprintf(tmp, ": Error Setting Engine Speed. Engines are too Damaged\n");
+      write(logfd, tmp, strlen(tmp));
    }
-
-   if(rtn != -1)
+   else
    {
-      msg.amt = rtn;
-      send_packet(&msg, confd);
+      switch(req_type)
+      {
+         case REQ_INIT_IMPLS_DRV:
+            rtn = engage_impulse(hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Impulse Engines Started Up & Speed Now %d\n", rtn)
+               : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_INIT_WARP_DRV:
+            rtn = engage_warp(hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Warp Engines Started Up & Speed Now %d\n", rtn)
+               : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_INCR_IMPLS:
+            rtn = impulse_speed(hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Impulse Speed Increased to %d\n", rtn) : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_DECR_IMPLS:
+            rtn = impulse_speed(-1 * hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Impulse Speed Decreased to %d\n", rtn) : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_INCR_WARP:
+            rtn = warp_speed(hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Warp Speed Increased to %d\n", rtn) : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_DECR_WARP:
+            rtn = warp_speed(-1 * hd->amt);
+            (rtn != -1) ? 
+               sprintf(tmp, ": Warp Speed Decreased to %d\n", rtn) : 0;
+            write(logfd, tmp, strlen(tmp));
+            break;
+         case REQ_REPORT:
+            eng_funcs.request_report(confd);
+            sprintf(tmp, ": Request Report Received\n");
+            write(logfd, tmp, strlen(tmp));
+            break;
+         default:
+            /* Error State */
+            sprintf(tmp, ": Error Processing Packet Request. Dropping Request - ");
+            write(logfd, tmp, strlen(tmp));
+            write(logfd, inBuf, strlen(inBuf));
+            write(logfd, "\n", 1);
+            break;
+      }
+
+      if(rtn != -1)
+      {
+         msg.amt = rtn;
+         send_packet(&msg, confd);
+      }
    }
    
    close(confd);
@@ -531,14 +549,30 @@ int engage_impulse(int speed)
    /* IF the Impulse and Warp Engines NOT already engaged THEN */
    if(!estat.imp_sp && !estat.warp_sp)
    {
-      /* Set Impulse Speed */
-      estat.imp_sp = speed;
+      /* IF speed <= MAX and enough power */
+      if((speed <= MAX_IMPL_SPEED) && 
+         eng_pwr_use[0] <= estat.pwr_alloc)
+      {         
+         /* Set Impulse Speed */
+         estat.imp_sp = speed;
 
-      /* Mark Time Engine Start */
+         /* Mark Time Engine Start */
+         estat.eng_start = time(NULL);
 
-      pthread_mutex_unlock(&mutex);
-      /* Return Set Speed */
-      return speed;
+         pthread_mutex_unlock(&mutex);
+         /* Return Set Speed */
+         return speed;
+      }
+      else
+      {
+         pthread_mutex_unlock(&mutex);
+         
+         sprintf(tmp, ": Invalid Init Impulse Speed %d or Insufficient Power (%d/%d)\n",
+            speed, eng_pwr_use[0], estat.pwr_alloc);
+         write(logfd, tmp, strlen(tmp));
+         
+         return -1;
+      }
    }
    else
    {
@@ -558,17 +592,31 @@ int impulse_speed(int speed)
    /* IF Impulse not already started AND Warp not already engaged THEN */
    if(estat.imp_sp && !estat.warp_sp)
    {
-      /* Increase impulse speed by speed */
-      estat.imp_sp += speed;
-      
-      /* IF speed now zero THEN */
-      if(!estat.imp_sp)
+      /* IF resulting speed <= MAX and power available THEN */
+      if(((estat.imp_sp + speed) <= MAX_IMPL_SPEED) &&
+         eng_pwr_use[0] <= estat.pwr_alloc)
       {
+         /* Increase impulse speed by speed */
+         estat.imp_sp += speed;
          
+         /* IF speed now zero THEN */
+         if(!estat.imp_sp)
+            estat.eng_stop = time(NULL);
+         
+         pthread_mutex_unlock(&mutex);
+         
+         return estat.imp_sp;
       }
-      
-      pthread_mutex_unlock(&mutex);
-      return estat.imp_sp;
+      else
+      {
+         pthread_mutex_unlock(&mutex);
+         
+         sprintf(tmp, ": Invalid Resulting Impulse Speed %d or Insufficient Power (%d/%d)\n",
+            estat.imp_sp + speed, eng_pwr_use[0], estat.pwr_alloc);
+         write(logfd, tmp, strlen(tmp));
+
+         return -1;
+      }
    }
    else
    {
@@ -588,14 +636,30 @@ int engage_warp(int speed)
    /* IF the Impulse and Warp Engines NOT already engaged THEN */
    if(!estat.imp_sp && !estat.warp_sp)
    {
-      /* Set Impulse Speed */
-      estat.warp_sp = speed;
+      /* IF speed <= MAX and power available THEN */
+      if((speed <= MAX_WARP_SPEED) && 
+         eng_pwr_use[speed] <= estat.pwr_alloc)
+      {
+         /* Set Warp Speed */
+         estat.warp_sp = speed;
 
-      /* Mark Time Engine Start */
-
-      pthread_mutex_unlock(&mutex);
-      /* Return Set Speed */
-      return speed;
+         /* Mark Time Engine Start */
+         estat.eng_start = time(NULL);
+         
+         pthread_mutex_unlock(&mutex);
+         
+         return speed;
+      }
+      else
+      {
+         pthread_mutex_unlock(&mutex);
+         
+         sprintf(tmp, ": Invalid Init Warp Speed (%d) or Insufficient Power (%d/%d)\n",
+            speed, eng_pwr_use[speed], estat.pwr_alloc);
+         write(logfd, tmp, strlen(tmp));
+         
+         return -1;
+      }
    }
    else
    {
@@ -615,17 +679,28 @@ int warp_speed(int speed)
    /* IF Impulse not already started AND Warp not already engaged THEN */
    if(!estat.imp_sp && estat.warp_sp)
    {
-      /* Increase impulse speed by speed */
-      estat.warp_sp += speed;
-      
-      /* IF speed now zero THEN */
-      if(!estat.warp_sp)
+      /* IF speed <= MAX and power available THEN */
+      if(((estat.warp_sp + speed) <= MAX_WARP_SPEED) && 
+         eng_pwr_use[estat.warp_sp + speed] <= estat.pwr_alloc)
       {
+         /* Increase impulse speed by speed */
+         estat.warp_sp += speed;
          
+         /* IF speed now zero THEN */
+         if(!estat.warp_sp)
+            estat.eng_stop = time(NULL);
+         
+         pthread_mutex_unlock(&mutex);
+      }
+      else
+      {
+         pthread_mutex_unlock(&mutex);
+         sprintf(tmp, ": Invalid resulting Warp speed (%d) or Insufficient Power (%d/%d)\n",
+            estat.warp_sp + speed, eng_pwr_use[estat.warp_sp + speed], estat.pwr_alloc);
+         write(logfd, tmp, strlen(tmp));
       }
       
-      pthread_mutex_unlock(&mutex);
-      return estat.imp_sp;
+      return estat.warp_sp;
    }
    else
    {
@@ -654,6 +729,45 @@ void req_report(int confd)
    pthread_mutex_unlock(&mutex);
    
    send_packet(&msg, confd);
+}
+
+void assess_damage(void)
+{
+   time_t tm = time(NULL);
+   
+   /* IF the engines have been up for ~60s THEN */
+   if(estat.eng_start - tm >= 60)
+   {
+      /* Add Radiation or Damage to Engines */
+      estat.tot_rad += (estat.imp_sp ? imp_rad[estat.imp_sp] :
+                        (estat.warp_sp ? warp_rad[estat.warp_sp] : 0));
+      
+      /* Do cooling on Radiation */
+      estat.tot_rad -= (estat.tot_rad >= COOLING_RATE) ? 
+                        COOLING_RATE : estat.tot_rad;
+      
+      /* IF radiation remaining THEN */
+      if(estat.tot_rad > 0)
+      {
+         /* Add appropriate damage for radiation remaining */
+         estat.eng_dmg += estat.tot_rad % DMG_PER_UNIT_RAD;
+      }
+      
+      /* IF can repair damage THEN */
+      if(!repair_dmg_time)
+      {
+         estat.eng_dmg -= (estat.eng_dmg > DMG_REPAIR_AMT) ?
+                           DMG_REPAIR_AMT : estat.eng_dmg;
+         repair_dmg_time = DMG_REPAIR_TIME;
+      }
+      
+      /* IF engines have since been shutdown THEN */
+      if(estat.eng_stop != -1)
+      {
+         /* RESET eng_start and stop */
+         estat.eng_stop = estat.eng_start = -1;
+      }
+   }
 }
 
 /* Print out current Engine status */
