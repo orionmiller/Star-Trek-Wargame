@@ -1,10 +1,12 @@
 /* The Static Port for Main Engine Service to run on */
 #define STATIC_ENG_PORT 3723
 
-/* Definitions for use in an Engine Header Packet */
+/* Definitions for Engine Type */
 #define SHUTDWN_DRIVE 0
 #define IMPULSE_DRIVE 1
 #define WARP_DRIVE 2
+
+/* Definitions for Engine Service Request Types */
 #define REQ_INIT_IMPLS_DRV 0
 #define REQ_INIT_WARP_DRV 1
 #define REQ_INCR_IMPLS 2
