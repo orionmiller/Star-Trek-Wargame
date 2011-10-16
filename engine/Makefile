@@ -20,12 +20,12 @@ else
 endif
 endif
 
-all:  engd-$(EXEC_SUFFIX) seng-$(EXEC_SUFFIX)
+all:  eng ship
 
-engd-$(EXEC_SUFFIX): eng.c
+eng: eng.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o engd-$(EXEC_SUFFIX).o eng.c -Wpacked
 
-seng-$(EXEC_SUFFIX): seng.c
+ship: seng.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o seng-$(EXEC_SUFFIX).o seng.c ../includes/smartalloc.c engd-$(EXEC_SUFFIX).o
 
 clean:

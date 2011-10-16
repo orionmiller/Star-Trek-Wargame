@@ -20,12 +20,12 @@ else
 endif
 endif
 
-all:  power-$(EXEC_SUFFIX) ship-$(EXEC_SUFFIX)
+all:  power ship
 
-power-$(EXEC_SUFFIX): power.c
+power: power.c
 	$(CC) -Wall -Werror $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o pwrd-$(EXEC_SUFFIX).o power.c -Wpacked
 
-ship-$(EXEC_SUFFIX): ship_power.c
+ship: ship_power.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o spwrd-$(EXEC_SUFFIX).o ship_power.c ../includes/smartalloc.c pwrd-$(EXEC_SUFFIX).o
 
 clean:
