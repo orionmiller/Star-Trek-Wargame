@@ -15,9 +15,8 @@
 #include <arpa/inet.h>
 #include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
+#include "../includes/eng_packet.h"
 
-/* The static port for the Main Engine Service to run on */
-#define STATIC_ENG_PORT 3723
 /* See "man listen(2)" for second parameter */
 #define BACKLOG 15
 /* Max Buffer for receiving data from connection */
@@ -55,6 +54,11 @@ extern struct EngineFuncs {
          void *YourFunctionName(void *in)
    */
    void *(*request_handler) (void *confd);
+   
+   /*
+      Send a status report Engine Packet through the confd socket.
+   */
+   void (*request_report) (int confd);
 } eng_funcs;
 
 /*
@@ -81,8 +85,9 @@ extern void engine_shutdown(void);
       -   0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6
       - Stop, 1/4, 1/3, 1/2, 2/3, 3/4, Full
       
+   RETURNS the current Impulse Speed Index.
 */
-extern void engage_impulse(int speed);
+extern int engage_impulse(int speed);
 
 /*
    Incrase or Decrease inpulse speed. Possible speeds are:
@@ -98,8 +103,10 @@ extern void engage_impulse(int speed);
       The impulse drives generate a variable amount of heat depending on the
          speed at which they are engaged. Overheating will cause damage to the 
          drives and can cost you points if they go out of service.
+         
+   RETURNS the current Impulse Speed Index.
 */
-extern void impulse_speed(int speed);
+extern int impulse_speed(int speed);
 
 /* 
    Startup the warp drive with initial speed. Possible speeds are indexed
@@ -109,9 +116,11 @@ extern void impulse_speed(int speed);
       
    NOTE:
       The warp drive generates considerably more heat than the impulse drives
-         and thus can cause overheating quicker. 
+         and thus can cause overheating quicker.
+         
+   RETURNS the current Warp Speed Index.
 */
-extern void engage_warp(int speed);
+extern int engage_warp(int speed);
 
 /*
    Increase or Decrease your ship's warp speed. See `engage_warp` for the list
@@ -119,5 +128,7 @@ extern void engage_warp(int speed);
 
    To change warp speed, simply call this function with the index of the 
       desired speed described in `engage_warp`.
+      
+   RETURNS the current Warp Speed Index.
 */
-extern void warp_speed(void);
+extern int warp_speed(int speed);

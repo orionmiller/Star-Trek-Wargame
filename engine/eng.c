@@ -1,12 +1,13 @@
 /**
-Main "Engine" service. To be compiled before given to contestants. 
+Main "Engine" service. To be compiled before given to contestants.
 
 Contestants must use and implement "eng.c"
 
-No main function included (the contestants will have this). Replaced with "engine_startup()".
-Therefor, must compile with "gcc -c" option.
+No main function included (the contestants will have this). 
+   Replaced with "engine_startup()". Therefor, must compile with 
+   "gcc -c" option.
 
-Compile as:    gcc -c eng.c -o pwrd.o -lpthread -Wpacked
+Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
   or use the Makefile
 
 @author Dirk Cummings
@@ -20,8 +21,18 @@ Compile as:    gcc -c eng.c -o pwrd.o -lpthread -Wpacked
 
 #define MAX_SHIP_WARP 9
 #define MAX_SHIP_DMG 25
-#define DMG_PER_UNIT_HEAT 1 
+#define DMG_PER_UNIT_HEAT 1
 #define COOLING_RATE 16
+#define IMP_ENG_POWER_USE 4
+#define WARP1_POWER 5
+#define WARP2_POWER 6
+#define WARP3_POWER 7
+#define WARP4_POWER 8
+#define WARP5_POWER 9
+#define WARP6_POWER 10
+#define WARP7_POWER 11
+#define WARP8_POWER 12
+#define WARP9_POWER 13
 
 /* File Descriptors for Socketing */
 int sockfd;
@@ -37,18 +48,27 @@ time_t tm;
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;
 
-/* Internal Engine Allocation */
-int pwr_alloc;
-int tot_dmg;
+/* Internal Data Storage for Current Status */
+typedef struct status_struct Status;
+
+struct status_struct {
+   int warp_sp;
+   int imp_sp;
+   int eng_dmg;
+   int pwr_alloc;
+   int tot_rad;
+};
+
+Status estat = {0, 0, 0, 0, 0};
 
 /* Heat Generated for impulse speeds using log10(1/16) / log10(imp_actual) */
 double imp_heat[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
-/* 
-   Heat Generated for warp speeds using 
-   - Below Warp 6: (1 + log10(warp) / log10(5)) + 8 
+/*
+   Heat Generated for warp speeds using
+   - Below Warp 6: (1 + log10(warp) / log10(5)) + 8
    - Warp 6 and Above (e^((warp - 5) / 2) + 15
 */
-double warp_heat[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487, 
+double warp_heat[] = {8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487,
                      17.7183, 19.4817, 22.3891};
 
 /* For Mutex Locking */
@@ -57,14 +77,16 @@ static pthread_mutex_t mutex;
 
 int getPwrAlloc(void);
 void *request_handler(void *in);
+void send_packet(struct EngineHeader *, int);
+void req_report(int confd);
 void print_engine_status(void);
 
-/* 
+/*
    Engine Service Function Structure Declaration.
-   
+
    Initialize to eng.c's associated functions
 */
-struct EngineFuncs eng_funcs = {&request_handler};
+struct EngineFuncs eng_funcs = {&request_handler, &req_report};
 
 void sig_handler(int sig)
 {
@@ -74,9 +96,9 @@ void sig_handler(int sig)
       testing = 1;
 }
 
-/* 
-   Main entry point into the "service". Must do house-keeping before starting the 
-      service's logic.
+/*
+   Main entry point into the "service". Must do house-keeping before 
+      starting the service's logic.
 */
 void engine_startup()
 {
@@ -97,11 +119,12 @@ void engine_startup()
 
    /* For Threading */
    pthread_t tid;
-   
+
    httpPt = 0;
 
    /* Setup Log File */
-   if ((logfd = open(LOG_FILE_LOCATION, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
+   if ((logfd = open(LOG_FILE_LOCATION, O_WRONLY | O_CREAT | 
+                     O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
    {
       perror("Problem Opening Log File");
       logfd = STDIN_FILENO;
@@ -128,7 +151,7 @@ void engine_startup()
       perror("Couldn't set signal handler for SIGALRM");
       return;
    }
-   
+
    if(getPwrAlloc() < 0)
    {
       printf("Error getting Power Allocation from Power Service\n");
@@ -137,7 +160,7 @@ void engine_startup()
 
    /* Setup and Bind STATIC_PORT */
    bzero(&sck, sizeof(sck));
-   
+
    /* Set the Address (127.0.0.1) */
    if(inet_pton(AF_INET, "127.0.0.1", &(sck.sin_addr)) > 0)
       sck.sin_port = STATIC_ENG_PORT;
@@ -173,7 +196,7 @@ void engine_startup()
       perror("Listening Error");
       return;
    }
-   
+
    /* Set pthread mutex attributes and initialize mutex */
    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
    pthread_mutex_init(&mutex, &attr);
@@ -181,7 +204,8 @@ void engine_startup()
    /* Print to Log File? */
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp, ": Engine Service at 127.0.0.1 Listening on TCP Port %d\n", httpPt);
+   sprintf(tmp, ": Engine Service at 127.0.0.1 Listening on TCP Port %d\n", 
+      httpPt);
    write(logfd, tmp, strlen(tmp));
 
    /* Setup timers */
@@ -190,7 +214,7 @@ void engine_startup()
    testtv.it_value.tv_sec = 60;
    testtv.it_value.tv_usec = 0;
    resttv.it_value.tv_sec = resttv.it_value.tv_usec = 0;
-   
+
    /* Infinite loop for prompt? */
    while(running)
    {
@@ -207,7 +231,7 @@ void engine_startup()
       {
          /* Install reset timer */
          setitimer(ITIMER_REAL, &resttv, NULL);
-         
+
          /* Create new thread to handle / process test functions */
 
          /* TODO: Orion write & call test functions */
@@ -223,12 +247,12 @@ void engine_startup()
 
       if(errno)
          perror("Some Error?");
- 
+
       errno = 0;
 
-      if(pthread_create(&tid, 
-                        NULL, 
-                        eng_funcs.request_handler, 
+      if(pthread_create(&tid,
+                        NULL,
+                        eng_funcs.request_handler,
                         (void *)&tcpfd) != 0 && errno != EINTR)
       {
          perror("Error Creating new Thread for Incomming Request");
@@ -237,8 +261,8 @@ void engine_startup()
    }
 }
 
-/* 
-   Engine Shutdown method. Should clean up the "system" before exiting 
+/*
+   Engine Shutdown method. Should clean up the "system" before exiting
       this program. If there are errors during cleanup, "shutdown" anyways
       by simply returning. Let calling functions handel errors.
 */
@@ -262,7 +286,7 @@ void engine_shutdown()
       perror("Bad IP Address");
       return;
    }
-   
+
    if((pwr_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
    {
       perror("Socket Error");
@@ -292,16 +316,16 @@ void engine_shutdown()
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
    sprintf(tmp,": --- Engine Service Shutting Down ---\n");
    write(logfd, tmp, strlen(tmp));
-   
+
    free(pwrhd);
-   
+
    close(pwr_sockfd);
    close(logfd);
    close(sockfd);
 }
 
 /*
-   Connect to the Power Service and get the Engine Service's current Power 
+   Connect to the Power Service and get the Engine Service's current Power
       Allocation.
 
    SETS the current power allocation for this service.
@@ -327,7 +351,7 @@ int getPwrAlloc()
       perror("Bad IP Address");
       return -1;
    }
-   
+
    if((pwr_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
    {
       perror("Socket Error");
@@ -340,7 +364,7 @@ int getPwrAlloc()
       close(pwr_sockfd);
       return -1;
    }
-   
+
    pwrhd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    pwrhd->ver = 1;
    pwrhd->len = sizeof(struct PowerHeader);
@@ -356,7 +380,7 @@ int getPwrAlloc()
       free(pwrhd);
       return -1;
    }
-   
+
    tmp[0] = '\0';
    if(write(pwr_sockfd, (void *)tmp, strlen(tmp) + 1) < 0)
    {
@@ -364,7 +388,7 @@ int getPwrAlloc()
       free(pwrhd);
       return -1;
    }
-   
+
    if(read(pwr_sockfd, (void *)pwrhd, sizeof(struct PowerHeader)) < 0)
    {
       perror("Receiving from Power Service");
@@ -372,40 +396,276 @@ int getPwrAlloc()
       return -1;
    }
 
-   pwr_alloc = pwrhd->alloc;
-
-printf("power alloced: %d\n", pwr_alloc);
+   estat.pwr_alloc = pwrhd->alloc;
 
    free(pwrhd);
 
-   return pwr_alloc;
+   return estat.pwr_alloc;
 }
 
-/* 
+/*
    For receiving incoming data from a socket.
-   
+
    (this may be the function we make everyone else replace)
-   
+
    *in should be a poniter to a valid socket file descriptor
 */
 void *request_handler(void *in)
 {
    int confd = *((int *) in);
+   int rtn;
    char inBuf[MAXBUF];
-//   char tmp[100];
-//   ssize_t rt = 1;
-//   int totalRecv = 0;
+   char tmp[100];
+   ssize_t rt = 1;
+   int totalRecv = 0;
+   struct EngineHeader *hd;
+   struct EngineHeader msg;
+   uint8_t req_type;
+   uint8_t eng_type;
 
    pthread_detach(pthread_self());
    bzero(inBuf, MAXBUF);
 
+   do
+   {
+      /* IF received 0 bytes and errno was set THEN */
+      if((rt = recv(confd, &inBuf[totalRecv], MAXBUF - totalRecv, 0)) == 0 
+         && errno != 0)
+      {
+         perror("Receive Error");
+         close(confd);
+         pthread_exit(NULL);
+         return (NULL);
+      }
+
+      totalRecv += rt;
+   } while(rt  > 0 && inBuf[totalRecv - 1] != '\0');
+
+   /* Begin byte stream processing */
+   hd = (struct EngineHeader *)(inBuf);
+   req_type = (hd->eng_type_req && 0x0F);
+   eng_type = (hd->eng_type_req && 0xF0) >> 4;
+   
+   msg.ver = 1;
+   msg.len = sizeof(struct EngineHeader);   
+   msg.eng_type_req = (eng_type << 4) | REQ_REPORT;
+
+   tm = time(NULL);
+   write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
+   
+   switch(req_type)
+   {
+      case REQ_INIT_IMPLS_DRV:
+         rtn = engage_impulse(hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Impulse Engines Started Up & Speed Now %d\n", rtn)
+            : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_INIT_WARP_DRV:
+         rtn = engage_warp(hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Warp Engines Started Up & Speed Now %d\n", rtn)
+            : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_INCR_IMPLS:
+         rtn = impulse_speed(hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Impulse Speed Increased to %d\n", rtn) : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_DECR_IMPLS:
+         rtn = impulse_speed(-1 * hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Impulse Speed Decreased to %d\n", rtn) : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_INCR_WARP:
+         rtn = warp_speed(hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Warp Speed Increased to %d\n", rtn) : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_DECR_WARP:
+         rtn = warp_speed(-1 * hd->amt);
+         (rtn != -1) ? 
+            sprintf(tmp, ": Warp Speed Decreased to %d\n", rtn) : 0;
+         write(logfd, tmp, strlen(tmp));
+         break;
+      case REQ_REPORT:
+         eng_funcs.request_report(confd);
+         sprintf(tmp, ": Request Report Received\n");
+         write(logfd, tmp, strlen(tmp));
+         break;
+      default:
+         /* Error State */
+         sprintf(tmp, ": Error Processing Packet Request. Dropping Request - ");
+         write(logfd, tmp, strlen(tmp));
+         write(logfd, inBuf, strlen(inBuf));
+         write(logfd, "\n", 1);
+         break;
+   }
+
+   if(rtn != -1)
+   {
+      msg.amt = rtn;
+      send_packet(&msg, confd);
+   }
+   
    close(confd);
    pthread_exit(NULL);
    return (NULL);
 }
 
-/* Print out current usages for all services */
+void send_packet(struct EngineHeader *msg, int confd)
+{
+   write(confd, (void *)msg, sizeof(struct EngineHeader));
+}
+
+int engage_impulse(int speed)
+{
+   char tmp[100];
+   
+   pthread_mutex_lock(&mutex);
+   /* IF the Impulse and Warp Engines NOT already engaged THEN */
+   if(!estat.imp_sp && !estat.warp_sp)
+   {
+      /* Set Impulse Speed */
+      estat.imp_sp = speed;
+
+      /* Mark Time Engine Start */
+
+      pthread_mutex_unlock(&mutex);
+      /* Return Set Speed */
+      return speed;
+   }
+   else
+   {
+      pthread_mutex_unlock(&mutex);
+      /* Log Error */
+      sprintf(tmp, ": Error Engaging Impulse Engines. An Engine is already Started\n");
+      write(logfd, tmp, strlen(tmp));
+      return -1;
+   }
+}
+
+int impulse_speed(int speed)
+{
+   char tmp[100];
+   
+   pthread_mutex_lock(&mutex);
+   /* IF Impulse not already started AND Warp not already engaged THEN */
+   if(estat.imp_sp && !estat.warp_sp)
+   {
+      /* Increase impulse speed by speed */
+      estat.imp_sp += speed;
+      
+      /* IF speed now zero THEN */
+      if(!estat.imp_sp)
+      {
+         
+      }
+      
+      pthread_mutex_unlock(&mutex);
+      return estat.imp_sp;
+   }
+   else
+   {
+      pthread_mutex_unlock(&mutex);
+      /* Log Error */
+      sprintf(tmp, ": Error Setting Impulse Speed. Impulse Engines NOT Engaged\n");
+      write(logfd, tmp, strlen(tmp));
+      return -1;
+   }
+}
+
+int engage_warp(int speed)
+{
+   char tmp[100];
+   
+   pthread_mutex_lock(&mutex);
+   /* IF the Impulse and Warp Engines NOT already engaged THEN */
+   if(!estat.imp_sp && !estat.warp_sp)
+   {
+      /* Set Impulse Speed */
+      estat.warp_sp = speed;
+
+      /* Mark Time Engine Start */
+
+      pthread_mutex_unlock(&mutex);
+      /* Return Set Speed */
+      return speed;
+   }
+   else
+   {
+      pthread_mutex_unlock(&mutex);
+      /* Log Error */
+      sprintf(tmp, ": Error Engaging Warp Engines. An Engines is already Started\n");
+      write(logfd, tmp, strlen(tmp));
+      return -1;
+   }
+}
+
+int warp_speed(int speed)
+{
+   char tmp[100];
+   
+   pthread_mutex_unlock(&mutex);
+   /* IF Impulse not already started AND Warp not already engaged THEN */
+   if(!estat.imp_sp && estat.warp_sp)
+   {
+      /* Increase impulse speed by speed */
+      estat.warp_sp += speed;
+      
+      /* IF speed now zero THEN */
+      if(!estat.warp_sp)
+      {
+         
+      }
+      
+      pthread_mutex_unlock(&mutex);
+      return estat.imp_sp;
+   }
+   else
+   {
+      pthread_mutex_unlock(&mutex);
+      /* Log Error */
+      sprintf(tmp, ": Error Setting Warp Speed. Warp Engines NOT Engaged\n");
+      write(logfd, tmp, strlen(tmp));
+      return -1;
+   }
+}
+
+void req_report(int confd)
+{
+   struct EngineHeader msg;
+   
+   msg.ver = 1;
+   msg.len = sizeof(struct EngineHeader);
+   pthread_mutex_lock(&mutex);
+   msg.eng_type_req = ((estat.imp_sp ? IMPULSE_DRIVE : 
+                        (estat.warp_sp ? WARP_DRIVE : SHUTDWN_DRIVE)) << 4)
+                        | (REQ_REPORT);
+   msg.amt = (estat.imp_sp) ? (estat.imp_sp) : 
+             ((estat.warp_sp) ? (estat.warp_sp) : 0);
+   msg.dmg = estat.eng_dmg;
+   msg.rad = estat.tot_rad;
+   pthread_mutex_unlock(&mutex);
+   
+   send_packet(&msg, confd);
+}
+
+/* Print out current Engine status */
 void print_engine_status()
 {
+   printf("%s Drive Engaged\n", (estat.imp_sp ? "Impulse" : 
+                                (estat.warp_sp ? "Warp" : "No")));
+   printf("Currents\n");
+   printf("\t- Speed: %d\n", (estat.imp_sp ? estat.imp_sp : 
+                             (estat.warp_sp ? estat.warp_sp : 0)));
+   printf("\t- Engine Damage: %d\n", estat.eng_dmg);
+   printf("\t- Engine Radiation: %d\n", estat.tot_rad);
+   printf("\t- Power Allocation: %d\n", estat.pwr_alloc);
    fflush(stdout);
 }
