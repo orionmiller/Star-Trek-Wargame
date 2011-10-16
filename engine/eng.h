@@ -85,7 +85,7 @@ extern void engine_shutdown(void);
       -   0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6
       - Stop, 1/4, 1/3, 1/2, 2/3, 3/4, Full
       
-   RETURNS the current Impulse Speed Index.
+   RETURNS the current Impulse Speed Index, or -1 on error.
 */
 extern int engage_impulse(int speed);
 
@@ -104,7 +104,7 @@ extern int engage_impulse(int speed);
          speed at which they are engaged. Overheating will cause damage to the 
          drives and can cost you points if they go out of service.
          
-   RETURNS the current Impulse Speed Index.
+   RETURNS the current Impulse Speed Index, or -1 on error.
 */
 extern int impulse_speed(int speed);
 
@@ -118,7 +118,7 @@ extern int impulse_speed(int speed);
       The warp drive generates considerably more heat than the impulse drives
          and thus can cause overheating quicker.
          
-   RETURNS the current Warp Speed Index.
+   RETURNS the current Warp Speed Index, or -1 on error.
 */
 extern int engage_warp(int speed);
 
@@ -129,6 +129,6 @@ extern int engage_warp(int speed);
    To change warp speed, simply call this function with the index of the 
       desired speed described in `engage_warp`.
       
-   RETURNS the current Warp Speed Index.
+   RETURNS the current Warp Speed Index, or -1 on error.
 */
 extern int warp_speed(int speed);
