@@ -20,12 +20,12 @@ else
 endif
 endif
 
-all:  nav-$(EXEC_SUFFIX) snav-$(EXEC_SUFFIX)
+all:  nav ship
 
-nav-$(EXEC_SUFFIX): nav.c
+nav: nav.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o nav-$(EXEC_SUFFIX).o nav.c -Wpacked
 
-snav-$(EXEC_SUFFIX): snav.c
+ship: snav.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o snav-$(EXEC_SUFFIX).o snav.c ../includes/smartalloc.c nav-$(EXEC_SUFFIX).o
 
 clean:

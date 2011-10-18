@@ -6,7 +6,7 @@ Contestants must use and implement "nav.c"
 No main function included (the contestants will have this). Replaced with "navigation_startup()".
 Therefor, must compile with "gcc -c" option.
 
-Compile as:    gcc -c nav.c -o pwrd.o -lpthread -Wpacked
+Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
   or use the Makefile
 
 @author Dirk Cummings
@@ -30,9 +30,6 @@ int httpPt;
 
 /* Log File Descriptor */
 int logfd;
-
-/* Temp Time */
-time_t tm;
 
 /* Control termination of main loop */
 volatile sig_atomic_t running = 1;
@@ -93,11 +90,15 @@ void navigation_startup()
 
    /* For Threading */
    pthread_t tid;
+
+   /* Temp Time for Logging */
+   time_t tm;
    
    httpPt = 0;
 
    /* Setup Log File */
-   if ((logfd = open(LOG_FILE_LOCATION, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
+   if ((logfd = open(LOG_FILE_LOCATION, O_WRONLY | O_CREAT | O_APPEND, 
+                  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
    {
       perror("Problem Opening Log File");
       logfd = STDIN_FILENO;
@@ -236,9 +237,37 @@ void navigation_startup()
 */
 void navigation_shutdown()
 {
+   time_t tm;
+   struct sockaddr_in pwr_sck;
+   /* Power header */
    char tmp[100];
    tm = time(NULL);
    struct PowerHeader *pwrhd;
+   int pwr_sockfd;
+
+   /* Connect to Power Service and register self */
+   bzero(&pwr_sck, sizeof(pwr_sck));
+   pwr_sck.sin_family = AF_INET;
+
+   if(inet_pton(AF_INET, "127.0.0.1", &(pwr_sck.sin_addr)) > 0)
+      pwr_sck.sin_port = (STATIC_PWR_PORT);
+   else
+   {
+      perror("Bad IP Address");
+      return;
+   }
+
+   if((pwr_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+   {
+      perror("Socket Error");
+      return;
+   }
+
+   if(connect(pwr_sockfd, (struct sockaddr *)&pwr_sck, sizeof(pwr_sck)) == -1)
+   {
+      perror("Power Connecting Error");
+      return;
+   }
 
    pwrhd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    pwrhd->ver = 1;
@@ -257,7 +286,10 @@ void navigation_shutdown()
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
    sprintf(tmp,": --- Navigation Service Shutting Down ---\n");
    write(logfd, tmp, strlen(tmp));
-   
+
+   free(pwrhd);
+
+   close(pwr_sockfd);
    close(logfd);
    close(sockfd);
 }
@@ -333,8 +365,6 @@ int getPwrAlloc()
    }
 
    pwr_alloc = pwrhd->alloc;
-
-printf("power alloced: %d\n", pwr_alloc);
 
    free(pwrhd);
 
