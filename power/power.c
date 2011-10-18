@@ -133,7 +133,10 @@ void power_startup()
    
    /* Set the Address (127.0.0.1) */
    if(inet_pton(AF_INET, "127.0.0.1", &(sck.sin_addr)) > 0)
+   {
       sck.sin_port = STATIC_PWR_PORT;
+      sck.sin_family = AF_INET;
+   }
    else
    {
       perror("Bad IP Address");
@@ -185,7 +188,7 @@ void power_startup()
 
    /* Install timer */
    setitimer(ITIMER_REAL, &test_tm, NULL);
-
+   
    /* Infinite loop for prompt? */
    while(running)
    {
@@ -249,6 +252,7 @@ void power_shutdown()
    /* Contact all Services to Shutdown */
    for(tmp = servs; tmp; tmp = tmp->next)
    {
+      printf("%d\t%d\n", tmp->id, tmp->pid);
       /* TODO: SIGKILL OR SIGSTOP ?*/
       kill(tmp->pid, SIGKILL);
    }
@@ -300,17 +304,17 @@ void *request_handler(void *in)
    do
    {
       /* IF received 0 bytes and errno was set THEN */
-      if((rt = recv(confd, &inBuf[totalRecv], MAXBUF - totalRecv, 0)) == 0 && errno != 0)
+      if((rt = recv(confd, &inBuf[totalRecv], MAXBUF - totalRecv, 0)) <= 0 && errno != 0)
       {
          perror("Receive Error");
          close(confd);
          pthread_exit(NULL);
          return (NULL);
       }
-      
+
       totalRecv += rt;
    } while(rt > 0 && inBuf[totalRecv - 1] != '\0');
-   
+
    /* Begin Byte Stream Processing */
    pwrhd = (struct PowerHeader *)(inBuf);
    req_type = (pwrhd->req_type_amt & 0xF0) >> 4;
@@ -356,7 +360,7 @@ void *request_handler(void *in)
    }
    else if(req_type == REQ_RES_DEALLOC)
    {
-      amt = free_power(amt, pwrhd->dest_svc);
+     amt = free_power(amt, pwrhd->dest_svc);
       
       msg.req_type_amt = (REG_SVC_ALLOC << 4);
       msg.dest_svc = dest->id;
@@ -630,15 +634,19 @@ int register_service(int id, int pId)
    Service *ptr;
    int resPwr = reservePowerRemaining();
 
+   /* FIND a reg'ed service with the same PId, OR the last in the list */
    for(ptr = servs; ptr; ptr = ptr->next)
    {
       if(ptr->id == id || ptr->pid == pId)
          return 0;
+      else if(!ptr->next)
+         break;
    }
    
    pthread_mutex_lock(&mutex);
 
-   if(!ptr)
+   /* IF there are no current Services Registered */
+   if(!servs)
    {
       ptr = (Service *)malloc(sizeof(struct srvcs_struct));
       servs = ptr;

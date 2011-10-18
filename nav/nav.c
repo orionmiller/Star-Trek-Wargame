@@ -137,7 +137,10 @@ void navigation_startup()
    
    /* Set the Address (127.0.0.1) */
    if(inet_pton(AF_INET, "127.0.0.1", &(sck.sin_addr)) > 0)
-      sck.sin_port = STATIC_ENG_PORT;
+   {
+      sck.sin_port = STATIC_NAV_PORT;
+      sck.sin_family = AF_INET;
+   }
    else
    {
       perror("Bad IP Address");

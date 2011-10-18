@@ -15,15 +15,16 @@
 #include <arpa/inet.h>
 #include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
+#include "../includes/eng_packet.h"
 
 /* The static port for the Main Navigation Service to run on */
-#define STATIC_ENG_PORT 3723
+#define STATIC_NAV_PORT 1337
 /* See "man listen(2)" for second parameter */
 #define BACKLOG 15
 /* Max Buffer for receiving data from connection */
 #define MAXBUF 4096
 /* Log file Location */
-#define LOG_FILE_LOCATION "./logs/navigation.log"
+#define LOG_FILE_LOCATION "../logs/navigation.log"
 #define LOG_FILE_PERMS 0666
 
 /* 
