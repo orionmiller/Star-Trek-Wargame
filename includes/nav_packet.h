@@ -41,7 +41,7 @@
    This structure is used internally and must NOT be changed or renamed while
       using the provided request_handler function.
 */
-struct EngineHeader {
+struct NavigationHeader {
    uint8_t ver;         /* The Version of the Packet */
    uint8_t len;         /* The length of packet (in bytes) incase you add to it */
 };

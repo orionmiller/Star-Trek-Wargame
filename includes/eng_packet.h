@@ -64,8 +64,7 @@
          Use the Definitions above with prefix 'IMP_' for impulse indexing
             speeds. For Warp, simply use the Warp Number (1, 2, ... 9) where
             a Warp of 0 is full stop.
-      - Padding
-         Whatever
+
    You can use and modify the following structure to overlay on to incomming 
       data for easier access. For example:
 

@@ -16,9 +16,8 @@
 #include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
 #include "../includes/eng_packet.h"
+#include "../includes/nav_packet.h"
 
-/* The static port for the Main Navigation Service to run on */
-#define STATIC_NAV_PORT 1337
 /* See "man listen(2)" for second parameter */
 #define BACKLOG 15
 /* Max Buffer for receiving data from connection */
@@ -50,13 +49,13 @@ extern struct NavigationFuncs {
          the built in function with your own.
          
       Replace the built-in function with your own with this line:
-         eng_funcs.request_handler = &YourFunctionName;
+         nav_funcs.request_handler = &YourFunctionName;
       
       Your function should be declared like:
          void *YourFunctionName(void *in)
    */
    void *(*request_handler) (void *confd);
-} eng_funcs;
+} nav_funcs;
 
 /*
    Main entry point into this service. Sets up all book/house-keeping and
@@ -75,50 +74,3 @@ extern void navigation_startup(void);
       exits.
 */
 extern void navigation_shutdown(void);
-
-/*
-   Startup the impulse drive with initial speed. Possible speeds are indexed
-      starting at Zero and are one of the following:
-      -   0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6
-      - Stop, 1/4, 1/3, 1/2, 2/3, 3/4, Full
-      
-*/
-extern void engage_impulse(int speed);
-
-/*
-   Incrase or Decrease inpulse speed. Possible speeds are:
-      - Stop, 1/4, 1/3, 1/2, 2/3, 3/4, Full
-   
-   Where Full is 1/4th the speed of light (or approx. 74,948,114 m/s or 
-      269,813,210 kph).
-      
-   To Increase or Decrease the current speed, simple call with the index of
-      the speed you wish to change to described in `engage_impulse`.
-      
-   NOTE:
-      The impulse drives generate a variable amount of heat depending on the
-         speed at which they are engaged. Overheating will cause damage to the 
-         drives and can cost you points if they go out of service.
-*/
-extern void impulse_speed(int speed);
-
-/* 
-   Startup the warp drive with initial speed. Possible speeds are indexed
-      starting at Zero and are one of the following:
-      -   0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9
-      - Stop, 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9
-      
-   NOTE:
-      The warp drive generates considerably more heat than the impulse drives
-         and thus can cause overheating quicker. 
-*/
-extern void engage_warp(int speed);
-
-/*
-   Increase or Decrease your ship's warp speed. See `engage_warp` for the list
-      of possible speeds and their indexes.
-
-   To change warp speed, simply call this function with the index of the 
-      desired speed described in `engage_warp`.
-*/
-extern void warp_speed(void);
