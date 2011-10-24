@@ -193,7 +193,7 @@ void engine_startup()
    httpPt = sck.sin_port;
 
    /* Start Listening on Port */
-   if(listen(sockfd, 15) == -1)
+   if(listen(sockfd, BACKLOG) == -1)
    {
       perror("Listening Error");
       return;
