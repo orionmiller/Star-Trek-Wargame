@@ -67,6 +67,24 @@ extern struct PowerFuncs {
          void *YourFunctionName(void *in)
    */
    void *(*request_handler) (void *confd);
+
+   /*
+      If you do not wish to have write a special utility to build and send 
+         packages to your sevices, you may write your own command line interface
+         to control this service. 
+         
+      You may, for example, implement an RPC like interface or an interactive 
+         interface by listening on a port. The implementation is up to you; just
+         remember to make it secure.
+         
+      This functionality is NOT supported out of the box. That is, there is no
+         provided interm implemenation. This is purely for your convenience and
+         thus you must provide it yourself.
+         
+      If this function IS set, then a new pthread will be created and your function
+         called with NULL passed as the input parameter. 
+   */
+   void *(*cmd_line_inter) (void *);
 } pow_funcs;
 
 /*

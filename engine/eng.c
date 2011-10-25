@@ -82,7 +82,7 @@ void assess_damage(void);
 
    Initialize to eng.c's associated functions
 */
-struct EngineFuncs eng_funcs = {&request_handler, &req_report};
+struct EngineFuncs eng_funcs = {&request_handler, &req_report, NULL};
 
 void sig_handler(int sig)
 {
@@ -216,7 +216,18 @@ void engine_startup()
    testtv.it_value.tv_sec = 60;
    testtv.it_value.tv_usec = 0;
    resttv.it_value.tv_sec = resttv.it_value.tv_usec = 0;
-   
+  
+   /* IF the command line interface IS set THEN */
+   if(eng_funcs.cmd_line_inter)
+   {
+      /* Spawn and new thread and call the function */
+      if(pthread_create(&tid,
+                        NULL,
+                        eng_funcs.cmd_line_inter,
+                        NULL) != 0)
+         perror("Error Creating new Thread for Command Line Interface");
+   }
+
    estat.eng_stop = -1;
 
    /* Infinite loop for prompt? */
