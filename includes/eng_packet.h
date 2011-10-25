@@ -2,7 +2,7 @@
 #define STATIC_ENG_PORT 3723
 
 /* Definitions for Engine Type */
-#define SHUTDWN_DRIVE 0
+#define SHUTDOWN_DRIVE 0
 #define IMPULSE_DRIVE 1
 #define WARP_DRIVE 2
 

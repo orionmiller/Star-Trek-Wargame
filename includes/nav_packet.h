@@ -1,6 +1,16 @@
 /* The Static Port for Main Navigation Service to run on */
 #define STATIC_NAV_PORT 1336
 
+/* Definitions for Possible Directions */
+#define CRS_NORTH 0
+#define CRS_NORTH_EAST 1
+#define CRS_EAST 2
+#define CRS_SOUTH_EAST 3
+#define CRS_SOUTH 4
+#define CRS_SOUTH_WEST 5
+#define CRS_WEST 6
+#define CRS_NORTH_WEST 7
+
 /*
    NOTES:
       - The Main Navigation service uses and catches SIGINT and SIGALRM. Do not
@@ -19,15 +29,22 @@
   |--------------------------------------------------|
    17          20          24          28          32
   |--------------------------------------------------|
-  |    |                   |
+  |  Eng Type  |   Speed   |        Direction        |
   |--------------------------------------------------|
    33          36          40          44          48
   |--------------------------------------------------|
-  |                  |                |
+  |                      Padding                     |
   |--------------------------------------------------|
 
    Where
-      - 
+      - Engine Type:
+         Can be either IMPULSE_DRIVE, WARP_DRIVE, or others if you add
+      - Speed:
+         The speed index at which to travel (see definitions in eng_packet.h)
+      - Direction:
+         Can be any of the DEFS listed above prefixed with "CRS_"
+      - Duration:
+         Is the length of time (in seconds) to travel 
    You can use and modify the following structure to overlay on to incomming 
       data for easier access. For example:
 
@@ -44,4 +61,6 @@
 struct NavigationHeader {
    uint8_t ver;         /* The Version of the Packet */
    uint8_t len;         /* The length of packet (in bytes) incase you add to it */
+   uint8_t eng_type_spd;
+   uint8_t dir;
 };
