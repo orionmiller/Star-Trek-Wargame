@@ -131,8 +131,8 @@ void power_startup()
    /* Setup and Bind STATIC_PWR_PORT */
    bzero(&sck, sizeof(sck));
    
-   /* Set the Address (127.0.0.1) */
-   if(inet_pton(AF_INET, "127.0.0.1", &(sck.sin_addr)) > 0)
+   /* Set the Address IP_ADDRESS */
+   if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
    {
       sck.sin_port = STATIC_PWR_PORT;
       sck.sin_family = AF_INET;
@@ -176,7 +176,8 @@ void power_startup()
    /* Print to Log File? */
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp, ": Power Service at 127.0.0.1 Listening on TCP Port %d\n", httpPt);
+   sprintf(tmp, ": Power Service at %s Listening on TCP Port %d\n",
+      IP_ADDRESS, httpPt);
    write(logfd, tmp, strlen(tmp));
 
    /* Set up timers */
@@ -281,7 +282,7 @@ void power_shutdown()
 void *request_handler(void *in)
 {
    int confd = *((int *) in);
-   char inBuf[MAXBUF];
+   char *inBuf;
    char tmp[100];
    ssize_t rt = 1;
    int totalRecv = 0;
@@ -293,6 +294,7 @@ void *request_handler(void *in)
    Service *ptr = NULL, *src, *dest;
 
    pthread_detach(pthread_self());
+   inBuf = (char *)malloc(MAXBUF);
    bzero(inBuf, MAXBUF);
    
    msg.ver = 1;

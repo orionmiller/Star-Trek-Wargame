@@ -24,6 +24,7 @@
 /* Log file Location */
 #define LOG_FILE_LOCATION "../logs/engine.log"
 #define LOG_FILE_PERMS 0666
+#define IP_ADDRESS "127.0.0.1"
 
 /* 
    This structure contains functions pointers to all necessary functions to

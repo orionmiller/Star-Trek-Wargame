@@ -23,6 +23,7 @@
 /* Log file Location */
 #define LOG_FILE_LOCATION "../logs/power.log"
 #define LOG_FILE_PERMS 0666
+#define IP_ADDRESS "127.0.0.1"
 
 /*
    NOTES:

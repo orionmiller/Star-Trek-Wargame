@@ -160,8 +160,8 @@ void engine_startup()
    /* Setup and Bind STATIC_ENG_PORT */
    bzero(&sck, sizeof(sck));
 
-   /* Set the Address (127.0.0.1) */
-   if(inet_pton(AF_INET, "127.0.0.1", &(sck.sin_addr)) > 0)
+   /* Set the Address IP_ADDRESS */
+   if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
    {
       sck.sin_port = STATIC_ENG_PORT;
       sck.sin_family = AF_INET;
@@ -206,8 +206,8 @@ void engine_startup()
    /* Print to Log File? */
    tm = time(NULL);
    write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
-   sprintf(tmp, ": Engine Service at 127.0.0.1 Listening on TCP Port %d\n", 
-      httpPt);
+   sprintf(tmp, ": Engine Service at %s Listening on TCP Port %d\n", 
+      IP_ADDRESS, httpPt);
    write(logfd, tmp, strlen(tmp));
 
    /* Setup timers */
@@ -290,7 +290,7 @@ void engine_shutdown()
    /* Connect to Power Service and register self */
    bzero(&pwr_sck, sizeof(pwr_sck));
 
-   if(inet_pton(AF_INET, "127.0.0.1", &(pwr_sck.sin_addr)) > 0)
+   if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
       pwr_sck.sin_port = htons(STATIC_PWR_PORT);
       pwr_sck.sin_family = AF_INET;
@@ -357,7 +357,7 @@ int getPwrAlloc()
    /* Connect to Power Service and register self */
    bzero(&pwr_sck, sizeof(pwr_sck));
    
-   if(inet_pton(AF_INET, "127.0.0.1", &(pwr_sck.sin_addr)) > 0)
+   if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
       pwr_sck.sin_port = (STATIC_PWR_PORT);
       pwr_sck.sin_family = AF_INET;
@@ -431,7 +431,7 @@ void *request_handler(void *in)
    int confd = *((int *) in);
    time_t tm;
    int rtn;
-   char inBuf[MAXBUF];
+   char *inBuf;
    char tmp[100];
    ssize_t rt = 1;
    int totalRecv = 0;
@@ -441,6 +441,7 @@ void *request_handler(void *in)
    uint8_t eng_type;
 
    pthread_detach(pthread_self());
+   inBuf = (char *)malloc(MAXBUF);
    bzero(inBuf, MAXBUF);
 
    do
@@ -727,7 +728,7 @@ void req_report(int confd)
    msg.len = sizeof(struct EngineHeader);
    pthread_mutex_lock(&mutex);
    msg.eng_type_req = ((estat.imp_sp ? IMPULSE_DRIVE : 
-                        (estat.warp_sp ? WARP_DRIVE : SHUTDWN_DRIVE)) << 4)
+                        (estat.warp_sp ? WARP_DRIVE : SHUTDOWN_DRIVE)) << 4)
                         | (REQ_REPORT);
    msg.amt = (estat.imp_sp) ? (estat.imp_sp) : 
              ((estat.warp_sp) ? (estat.warp_sp) : 0);
