@@ -188,11 +188,11 @@ void power_startup()
    test_rest.it_value.tv_sec = test_rest.it_value.tv_usec = 0;
 
    /* IF the command line interface IS setup THEN */
-   if(pwr_funcs.cmd_line_inter)
+   if(pow_funcs.cmd_line_inter)
    {
       if(pthread_create(&tid,
                         NULL,
-                        pwr_funcs.cmd_line_inter,
+                        pow_funcs.cmd_line_inter,
                         NULL) != 0)
          perror("Error Creating new Thread for Command Line Interface");
    }

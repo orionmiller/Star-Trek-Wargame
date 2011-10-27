@@ -25,8 +25,8 @@ all:  power ship
 power: power.c
 	$(CC) -Wall -Werror $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o pwrd-$(EXEC_SUFFIX).o power.c -Wpacked
 
-ship: ship_power.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o spwrd-$(EXEC_SUFFIX).o ship_power.c ../includes/smartalloc.c pwrd-$(EXEC_SUFFIX).o
+ship: spower.c
+	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o spwrd-$(EXEC_SUFFIX).o spower.c ../includes/smartalloc.c pwrd-$(EXEC_SUFFIX).o
 
 clean:
 	rm -rf pwrd-* spwrd-*

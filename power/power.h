@@ -85,6 +85,55 @@ extern struct PowerFuncs {
          called with NULL passed as the input parameter. 
    */
    void *(*cmd_line_inter) (void *);
+
+   /*
+      The following functions are your wrappers around the built-in / main Power
+         service functions. They will be used for testing your service 
+         implementation and will be called until your write your own request
+         handler. At the end of each of your implementations, you must call the 
+         external equivalent functions. A diagram of the setup is bellow along 
+         with an example of the order of the function calls.
+
+      Diagram:
+
+      ----------------------------------------------------------
+      |  request_handler                                       |
+      |                                                        |
+      |     ---------------------------------------------------|
+      |     |  additional_function                             |
+      |     |     (if you want to add additional               |
+      |     |     checking or functionality to add security)   |
+      |     |                                                  |
+      |     |     ---------------------------------------------|
+      |     |     |  wrapper_function                          |
+      |     |     |     (for your book-keeping)                |
+      |     |     |     EX) pow_funcs.wadd_power(int, int)     |
+      |     |     |     ---------------------------------------|
+      |     |     |     |  built-in_function                   |
+      |     |     |     |     EX) add_power(int, int)          |
+      |     |     |     |                                      |
+      ----------------------------------------------------------
+
+
+
+      Function Call Example:
+         
+      --> Incoming Connection Request
+            |--> Connection Accepted
+            |--> pow_funcs.request_handler(connection_file_descriptor)
+               |--> pow_funcs.wadd_power(int, int)
+                  |--> add_power(int, int)
+   */
+
+   int (*wregister_service) (int, int);
+
+   int (*wunregister_service) (int);
+
+   int (*wadd_power) (int, int);
+    
+   int (*wtransfer_power) (int, int, int);
+
+   int (*wfree_power) (int, int);
 } pow_funcs;
 
 /*
