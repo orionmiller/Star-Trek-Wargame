@@ -492,39 +492,39 @@ void *request_handler(void *in)
       switch(req_type)
       {
          case REQ_INIT_IMPLS_DRV:
-            rtn = engage_impulse(hd->amt);
+            rtn = eng_funcs.wengage_impulse(hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Impulse Engines Started Up & Speed Now %d\n", rtn)
                : 0;
             write(logfd, tmp, strlen(tmp));
             break;
          case REQ_INIT_WARP_DRV:
-            rtn = engage_warp(hd->amt);
+            rtn = eng_funcs.wengage_warp(hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Warp Engines Started Up & Speed Now %d\n", rtn)
                : 0;
             write(logfd, tmp, strlen(tmp));
             break;
          case REQ_INCR_IMPLS:
-            rtn = impulse_speed(hd->amt);
+            rtn = eng_funcs.wimpulse_speed(hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Impulse Speed Increased to %d\n", rtn) : 0;
             write(logfd, tmp, strlen(tmp));
             break;
          case REQ_DECR_IMPLS:
-            rtn = impulse_speed(-1 * hd->amt);
+            rtn = eng_funcs.wimpulse_speed(-1 * hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Impulse Speed Decreased to %d\n", rtn) : 0;
             write(logfd, tmp, strlen(tmp));
             break;
          case REQ_INCR_WARP:
-            rtn = warp_speed(hd->amt);
+            rtn = eng_funcs.wwarp_speed(hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Warp Speed Increased to %d\n", rtn) : 0;
             write(logfd, tmp, strlen(tmp));
             break;
          case REQ_DECR_WARP:
-            rtn = warp_speed(-1 * hd->amt);
+            rtn = eng_funcs.wwarp_speed(-1 * hd->amt);
             (rtn != -1) ? 
                sprintf(tmp, ": Warp Speed Decreased to %d\n", rtn) : 0;
             write(logfd, tmp, strlen(tmp));

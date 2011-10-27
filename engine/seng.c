@@ -14,16 +14,20 @@ Use the Makefile to compile or use:    gcc eng.o seng.c -o seng.o -lpthread
 
 #include "eng.h"
 
-void engageImpulse(void);
-void impulseSpeed(void);
-void engageWarp(void);
-void warpSpeed(void);
-void reqHandler(void *);
+int engageImpulse(int);
+int impulseSpeed(int);
+int engageWarp(int);
+int warpSpeed(int);
+void *reqHandler(void *);
 
 int main(int argc, char **argv)
 {
    // Setup the Function Pointers
 //   eng_funcs.request_handler = &reqHandler;
+   eng_funcs.wengage_impulse = &engageImpulse;
+   eng_funcs.wimpulse_speed = &impulseSpeed;
+   eng_funcs.wengage_warp = &engageWarp;
+   eng_funcs.wwarp_speed = warpSpeed;
 
    printf("Starting Up\n");
    engine_startup();   
@@ -35,27 +39,28 @@ int main(int argc, char **argv)
    return 0;
 }
 
-void engageImpulse(void)
+int engageImpulse(int speed)
 {
-
+   return engage_impulse(speed);
 }
 
-void impulseSpeed(void)
+int impulseSpeed(int speed)
 {
-
+   return impulse_speed(speed);
 }
 
-void engageWarp(void)
+int engageWarp(int speed)
 {
-
+   return engage_warp(speed);
 }
 
-void warpSpeed(void)
+int warpSpeed(int speed)
 {
-
+   return warp_speed(speed);
 }
 
-void reqHandler(void *in)
+void *reqHandler(void *in)
 {
    // Your implementation
+   return (NULL);
 }
