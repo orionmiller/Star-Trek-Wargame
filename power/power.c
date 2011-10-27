@@ -352,7 +352,7 @@ void *request_handler(void *in)
    }
    else if(req_type == REQ_TRANS)
    {
-      amt = transfer_power(amt, pwrhd->src_svc, pwrhd->dest_svc);
+      amt = pow_funcs.wtransfer_power(amt, pwrhd->src_svc, pwrhd->dest_svc);
       
       msg.req_type_amt = (REG_SVC_ALLOC << 4);
       msg.dest_svc = dest->id;
@@ -362,7 +362,7 @@ void *request_handler(void *in)
    }
    else if(req_type == REQ_RES_ALLOC)
    {
-      amt = add_power(amt, pwrhd->dest_svc);
+      amt = pow_funcs.wadd_power(amt, pwrhd->dest_svc);
       
       msg.req_type_amt = (REG_SVC_ALLOC << 4);
       msg.dest_svc = dest->id;
@@ -372,7 +372,7 @@ void *request_handler(void *in)
    }
    else if(req_type == REQ_RES_DEALLOC)
    {
-     amt = free_power(amt, pwrhd->dest_svc);
+     amt = pow_funcs.wfree_power(amt, pwrhd->dest_svc);
       
       msg.req_type_amt = (REG_SVC_ALLOC << 4);
       msg.dest_svc = dest->id;
@@ -382,7 +382,7 @@ void *request_handler(void *in)
    }
    else if(req_type == REG_NEW_SVC)
    {
-      if((svc_id = register_service(pwrhd->src_svc, pwrhd->pid)))
+      if((svc_id = pow_funcs.wregister_service(pwrhd->src_svc, pwrhd->pid)))
       {
          for(src = servs; src->id != svc_id; src = src->next)
             ;
@@ -411,7 +411,7 @@ void *request_handler(void *in)
    }
    else if(req_type == UNREG_NEW_SVC)
    {
-      if(unregister_service(pwrhd->src_svc))
+      if(pow_funcs.wunregister_service(pwrhd->src_svc))
       {
          write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
          sprintf(tmp, ": Service With Id %d Unregistered and Downed\n", pwrhd->src_svc);
