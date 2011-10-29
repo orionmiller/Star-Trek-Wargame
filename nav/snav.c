@@ -14,16 +14,14 @@ Use the Makefile to compile or use:    gcc nav.o snav.c -o snav.o -lpthread
 
 #include "nav.h"
 
-void engageImpulse(void);
-void impulseSpeed(void);
-void engageWarp(void);
-void warpSpeed(void);
-void reqHandler(void *);
+int setCourse(int, int, int);
+void *reqHandler(void *);
 
 int main(int argc, char **argv)
 {
    // Setup the Function Pointers
 //   nav_funcs.request_handler = &reqHandler;
+   nav_funcs.wset_course = &setCourse;
 
    printf("Starting Up\n");
    navigation_startup();
@@ -36,27 +34,14 @@ int main(int argc, char **argv)
    return 0;
 }
 
-void engageImpulse(void)
+int setCourse(int crs_dir, int eng_type, int speed)
 {
-
+   return set_course(crs_dir, eng_type, speed);
 }
 
-void impulseSpeed(void)
-{
-
-}
-
-void engageWarp(void)
-{
-
-}
-
-void warpSpeed(void)
-{
-
-}
-
-void reqHandler(void *in)
+void *reqHandler(void *in)
 {
    // Your implementation
+   
+   return (NULL);
 }
