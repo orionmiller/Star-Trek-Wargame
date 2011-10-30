@@ -60,9 +60,6 @@ int sockfd;
 int pwr_sockfd;
 int httpPt;
 
-/* Log File Descriptor */
-int logfd;
-
 /* Control termination of main loop */
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;

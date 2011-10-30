@@ -34,9 +34,6 @@ int eng_pwr_use[10] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 int sockfd;
 int httpPt;
 
-/* Log File Descriptor */
-int logfd;
-
 /* Control termination of main loop */
 volatile sig_atomic_t running = 1;
 volatile sig_atomic_t testing = 0;

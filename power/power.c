@@ -41,9 +41,6 @@ Service *servs = NULL;
 int sockfd;
 int httpPt;
 
-/* Log File Descriptor */
-int logfd;
-
 /* Temp Time */
 time_t tm;
 
