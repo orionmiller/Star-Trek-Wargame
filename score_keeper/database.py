@@ -1,7 +1,6 @@
-#notes
-# db_check and db_fix
-#    code functional for what it did before but is hocky and needs retouching
+#!/usr/bin/python2.7
 
+import redis
 
 TEAM_ID_INIT = 0
 GAME_ID_INIT = 0
@@ -14,11 +13,15 @@ KEY_TYPE = 1
 KEY = 0
 INIT_VALUE = 2
 
+TEAM_NAME_OFF=0
+TEAM_SCORE_OFF=1
+
+#1st is uniqe action id 2nd is score change
 ACTION={
     'null':(0,0),
-    'engage':(1,0),
-    'spam':(2,8),
-    'eggs':(3,4)}
+    'game_over':(1,0),
+    'service_down':(2,10),
+    'weapon_dmg':(3,1)}
 
 DB_KEYS=(
     ('game_id', 'string', GAME_ID_INIT),
@@ -33,11 +36,11 @@ DB_KEYS_FIX=[]
 class DataBase:
     def __init__(self, GameInfo=None, Log=None):
         self.r_server = redis.Redis('localhost')
-        Self.Log = Log
+        self.Log = Log
         
     def connect(self):
         try:
-            self. r_server = redis.Redis("localhost")
+            self. r_server = redis.Redis('localhost')
         except redis.RedisError as error:
             #check to see how i can pull more informationf
             print('Error Connecting to the redis server.\n')
@@ -47,8 +50,8 @@ class DataBase:
     #check if base ids are strings
     def db_check(self):
         db_pass = True
-        for curr_key in DB_KEYS: #x_key is shit name
-            if check_key(key=curr_key[KEY], key_type=curr_key[KEY_TYPE]) is False: #magic numbers
+        for curr_key in DB_KEYS: 
+            if check_key(key=curr_key[KEY], key_type=curr_key[KEY_TYPE]) is False:
                 db_pass = False
                 db_key_state.push(curr_key)
                 #append key to fix !!!!NEED TO KNOW WHAT TO FIX I
@@ -91,21 +94,22 @@ class DataBase:
             self.new_action(self.Game.TeamA, action_type['engage'])
             self.new_action(self.Game.TeamB, action_type['engage'])
         except:
-            self.Log.write('error while generating new game' + exc)
+            self.Log.write(msg='error while generating new game') #used to have +exc
 
     def finish_game(self):
         self.r_server.lset(self.Game.key, 0, GAME_OVER) #magic number
 
-    def check_key(self, key='', key_type=''): #renaming of key types expected and actual
+    def check_key(self, key='', expected_type=''): #renaming of key types expected and actual
         if self.r_server.exists(key) is True:
-            if (type=self.r_server.type(key)) is key_type:
+            key_type = self.r_server.type(key)
+            if key_type is expected_type:
                 return True
 
-            self.Log.write('key:\''+key'\'-expected type:\''+key_type+
-                           '\' actual type:\''+type+'\'')
+            self.Log.write(msg='key:\''+key+'\'-expected type:\''+expected_type+
+                           '\' actual type:\''+key_type+'\'')
             return False
 
-        self.Log.write('key:\''+key+'\' does not exist in the database.')
+        self.Log.write(msg='key:\''+key+'\' does not exist in the database.')
         return False
             
     def new_action(self, team_info=None, action=ACTION['null']):
@@ -117,8 +121,9 @@ class DataBase:
             self.r_server.rpush(action_key, action[TYPE])
             self.r_server.rpush(action_key, team_info.id)
             self.r_server.lpush('actions', action_key)
+            self.set_score(action[1]) #magic number
         else:
-            self.Log.write('Bad call of new_action with no team info.')
+            self.Log.write(msg='Bad call of new_action with no team info.')
 
 
     def check_score(score):
@@ -139,6 +144,8 @@ class DataBase:
 
     def get_score(self, TeamInfo=None):
         if TeamInfo is not None:
+            r_server.mget(team_key)
+
             
     def update_time_left(self):
         return True
@@ -149,6 +156,10 @@ class DataBase:
     def update_time_start(self, time_start=0):
         return False
 
+
+#notes
+# db_check and db_fix
+#    code functional for what it did before but is hocky and needs retouching
 
 # NEW GAME PSEUDO CODE
 # ::Game::

@@ -1,7 +1,4 @@
-#make local variables "priv." if possible
-#add error checking
-#add possibly a way to check current full path
-
+#!/usr/bin/python2.7
 import os
 import time
 
@@ -13,10 +10,10 @@ class Log:
         try:
             self.log = os.open(self.filename, os.O_WRONLY|os.O_CREAT)
         except:
-            self.print('Error opening log file\n')
+            print('Error opening log file: \''+self.filename+'\'')
 
     def write(self, msg=''):
-        log_msg = str(time.time())+' : '+msg+'\n'
+        log_msg = str(str(time.time())+' : '+msg+'\n')
         self.log.write(log_msg)
         self.log.flush() #may decrease performance
         if self.print_to_screen is True:
@@ -40,5 +37,9 @@ class Log:
         try:
             self.log = open(self.filename, os.O_WRONLY|os.O_CREAT)
         except:
-            self.print('Error opening log file\n')
+            print('Error opening log file\n')
  
+
+#make local variables "priv." if possible
+#add error checking
+#add possibly a way to check current full path
