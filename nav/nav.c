@@ -890,3 +890,44 @@ int set_course(int crs_dir, int eng_type, int speed)
       return -1;
    }
 }
+
+/*
+   Test Functions
+
+   RETURN -1 on failure, otherwise 0 (or something else other than -1)
+*/
+
+/* Test you can't set course to less or greater than possible course defines */
+int courseRange_test()
+{
+   return -1;
+}
+
+/* Test you can't go faster or slower than max or min engine speed */
+int engineSpeedRange_test()
+{
+   return -1;
+}
+
+/* Test you can't switch engines while another is already running */
+int engineSwitch_test()
+{
+   return -1;
+}
+
+int engineInit_test()
+{
+   return -1;
+}
+
+int engineShutdown_test()
+{
+   return -1;
+}
+
+void run_tests()
+{
+   courseRange_test();
+   engineSpeedRange_test();
+   engineSwitch_test();
+}

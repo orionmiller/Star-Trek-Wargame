@@ -799,3 +799,66 @@ void print_engine_status()
    printf("\t- Power Allocation: %d\n", estat.pwr_alloc);
    fflush(stdout);
 }
+
+/*
+   Test Functions
+
+   RETURN -1 on error, otherwise 0 (or anything not -1)
+*/
+
+/* 
+   Test warp engines can be initialized properly AND aren't initialized 
+      when Impulse or Warp already init'ed
+*/
+int initWarp_test()
+{
+   return -1;
+}
+
+/*
+   Test imp engines can be init'ed properly AND aren't init'ed when
+      Warp or Impulse already init'ed
+*/
+int initImpulse_test()
+{
+   return -1;
+}
+
+/* Test only valid Imp speeds are accepted */
+int validImpSpeeds_test()
+{
+   return -1;
+}
+
+/* Test only valid Warp speeds are accpeted */
+int validWarpSpeeds_test()
+{
+   return -1;
+}
+
+/* Test set of Warp speed is set correctly (does not go neg or above max) */
+int setWarpSpeed_test()
+{
+   return -1;
+}
+
+/* Test set of Imp speed is set correctly (does not go neg or above max) */
+int setImpSpeed_test()
+{
+   return -1;
+}
+
+/*
+   The main test function to call the other test and report to
+      Score Keeper when done.
+*/
+void run_tests()
+{
+   
+   initWarp_test();
+   initImpulse_test();
+   validImpSpeeds_test();
+   validWarpSpeeds_test();
+   setWarpSpeed_test();
+   setImpSpeed_test();
+}
