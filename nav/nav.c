@@ -755,6 +755,7 @@ int set_course(int crs_dir, int eng_type, int speed)
    int sk_sockfd;
    char *tmp;
 
+   pthread_mutex_lock(&mutex);
    /* IF can make these changes THEN */
    /* IF the current engine matches the eng_type */
    /* IF the current engine does not match the eng_type then no engine (an initialize) */
@@ -770,7 +771,10 @@ int set_course(int crs_dir, int eng_type, int speed)
    {
       /* Get connection to Score Keeper or FAIL */
       if((sk_sockfd = getSKConnection()) == -1)
+      {
+         pthread_mutex_unlock(&mutex);
          return -1;
+      }
          
       /* IF the speed || direction has changed, then update x and y positions */
       if(nav_stats.speed != speed || nav_stats.ship_dir != crs_dir)
@@ -853,7 +857,9 @@ int set_course(int crs_dir, int eng_type, int speed)
             nav_stats.ship_dir = crs_dir;
             nav_stats.eng_type = eng_type;
             nav_stats.speed = speed;
-
+            
+            close(sk_sockfd);
+            pthread_mutex_unlock(&mutex);
             return 1;
          }
          /* ELSE */
@@ -865,6 +871,8 @@ int set_course(int crs_dir, int eng_type, int speed)
             nav_stats.eng_type = eng_type;
             nav_stats.speed = speed;
 
+            close(sk_sockfd);
+            pthread_mutex_unlock(&mutex);
             return 0;
          }
       }
@@ -872,6 +880,8 @@ int set_course(int crs_dir, int eng_type, int speed)
       else
       {
          /* RETURN semi-success state? */
+         close(sk_sockfd);
+         pthread_mutex_unlock(&mutex);
          return 0;
       }
    }
@@ -879,6 +889,7 @@ int set_course(int crs_dir, int eng_type, int speed)
    else
    {
       /* RETURN error state */
+      pthread_mutex_unlock(&mutex);
       return -1;
    }
 }
