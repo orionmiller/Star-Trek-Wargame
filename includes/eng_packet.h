@@ -24,6 +24,14 @@
 #define IMP_THR_QTR 5
 #define IMP_FULL 6
 
+/* Engine Speed Conversions (in km/Hour) Using 300,000 m/s as C */
+// static uint32_t imp_speeds_hr[7] = {0, 67500, 90000, 135000, 180000, 202500, 270000};
+// static uint32_t warp_speeds_hr[7] = {1080000, 2160000, 3240000, 4320000, 5400000, 
+//                                 6480000, 7560000, 8640000, 9720000};
+/* Engine Speed Conversions (in km/min) Using 300,000 m/s as C */
+//static uint32_t imp_speed_min[7] = {0, 1125, 1500, 2250, 3000, 3375, 4500};
+//static uint32_t warp_speeds_min[7] = {18000, 36000, 54000, 72000, 90000, 108000, 
+//                                    126000, 144000, 162000};
 /*
    NOTES:
       - The Main Engine service uses and catches SIGINT and SIGALRM. Do not
