@@ -31,6 +31,9 @@
 #define IMPASSABLE_OBJ 2
 #define ENEMY_SHIP 3
 
+/* The file descriptor for writing to the Log file */
+int logfd;
+
 /* 
    This structure contains functions pointers to all necessary functions to
       implement the power system. 

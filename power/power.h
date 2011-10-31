@@ -25,6 +25,9 @@
 #define LOG_FILE_PERMS 0666
 #define IP_ADDRESS "127.0.0.1"
 
+/* The file descriptor for writing to the Log file */
+int logfd;
+
 /*
    NOTES:
       - The Main Power service uses and catches SIGINT and SIGALRM. Do not

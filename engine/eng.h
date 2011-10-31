@@ -26,6 +26,9 @@
 #define LOG_FILE_PERMS 0666
 #define IP_ADDRESS "127.0.0.1"
 
+/* The file descriptor for writing to the Log file */
+int logfd;
+
 /* 
    This structure contains functions pointers to all necessary functions to
       implement the power system. 

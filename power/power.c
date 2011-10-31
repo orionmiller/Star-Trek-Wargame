@@ -41,9 +41,6 @@ Service *servs = NULL;
 int sockfd;
 int httpPt;
 
-/* Log File Descriptor */
-int logfd;
-
 /* Temp Time */
 time_t tm;
 
@@ -731,4 +728,57 @@ int reservePowerRemaining()
       curUse += ptr->pwr_alloc;
       
    return MAX_SHIP_POWER - curUse;
+}
+
+/* 
+   Test Functions 
+
+   RETURN -1 if FAILED, otherwise 0 (or anything not -1)
+*/
+
+/* Make sure you can't add more than the MAX available Ship power */
+int addTooMuchPower_test()
+{
+   return -1;
+}
+
+/* Make sure can't add more power than is available in Reserve */
+int addFromReservePower_test()
+{
+   return -1;
+}
+
+/* Make sure you can't free so much power that the current allocated goes 
+   below 0 */
+int freeTooMuchPower_test()
+{
+   return -1;
+}
+
+/* Try to allocate more power than is currently unallocated */
+int allocTooMuchPower_test()
+{
+   return -1;
+}
+
+/* Try to transfer more power than source service has available */
+int transferTooMuchPower_test()
+{
+   return -1;
+}
+
+
+/* 
+   The main test function to call the other tests and report to 
+      Score Keeper when done.
+*/
+void run_tests()
+{
+   addTooMuchPower_test();
+   addFromReservePower_test();
+   freeTooMuchPower_test();
+   allocTooMuchPower_test();
+   transferTooMuchPower_test();
+
+   /* Talk with Score Keeper and report Status */
 }
