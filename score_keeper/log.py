@@ -8,14 +8,14 @@ class Log:
         self.filename = filename
         self.print_to_screen=print_to_screen
         try:
-            self.log = os.open(self.filename, os.O_WRONLY|os.O_CREAT)
+            self.log = open(self.filename, 'w+')
         except:
             print('Error opening log file: \''+self.filename+'\'')
 
     def write(self, msg=''):
-        log_msg = str(str(time.time())+' : '+msg+'\n')
+        log_msg = str(time.time())+' : '+msg+'\n'
         self.log.write(log_msg)
-        self.log.flush() #may decrease performance
+        self.log.flush()
         if self.print_to_screen is True:
             print(log_msg)
 

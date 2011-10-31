@@ -4,6 +4,7 @@ import socket
 import sys
 import threading
 import sk
+import time
 
 HOST = '127.0.0.1'
 PORT = 3333 
@@ -12,17 +13,26 @@ MAX_BUFF_SIZE = 1024
 
 semaphore = threading.Semaphore()
 
+
 def main():
     ScoreKeeper = sk.ScoreKeeper()
     ScoreKeeper.new_game()
 
+    #create thread for hq & dmg_report
+    #create thread for team a
+    #create thread for team b
+
+    #set up signal action on alarm
+    #set up signal alarm
+    #start threads
+    
 
 def update_scores(ScoreKeeper=None):
     if ScoreKeeper is None:
         print 'Update Score Error'
         sys.exit(1)
 
-def team_thread(expected_addr='',port=0):
+def team_thread(expected_addr='',port=0, req_handler):
     sock = None
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,17 +55,24 @@ def team_thread(expected_addr='',port=0):
         if sock is not None:
             conn, addr = sock.accept()
             print 'Connected by', addr
-        semaphore.acquire()
+    
         if expected_addr is addr:
-            semaphore.acquire()
             data = conn.recv(MAX_BUFF_SIZE)
-            
-        semaphore.release()
+    
+            semaphore.acquire()
+            req_handler(data)
+            semaphore.release()
     conn.close()    
             
 
 if __name__ == "__main__":
     main()
+
+def local_req(self, ScoreKeeper, data):
+    return None
+
+def remote_req(self, ScoreKeeper, data):
+    return None
 
 
     # for res in socket.getaddrinfo(HOST, PORT, socket.AF_INET,

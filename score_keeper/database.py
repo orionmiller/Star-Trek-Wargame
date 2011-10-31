@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 
 import redis
+import time
 
 TEAM_ID_INIT = 0
 GAME_ID_INIT = 0
@@ -16,12 +17,21 @@ INIT_VALUE = 2
 TEAM_NAME_OFF=0
 TEAM_SCORE_OFF=1
 
+TIME_LEFT_OFF=1
+TIME_START_OFF=2
+TIME_END_OFF=3
+
+
+VALID=True
+INVALID=False
+
 #1st is uniqe action id 2nd is score change
 ACTION={
     'null':(0,0),
-    'game_over':(1,0),
-    'service_down':(2,10),
-    'weapon_dmg':(3,1)}
+    'engage':(1,0),
+    'game_over':(2,0),
+    'service_down':(3,10),
+    'weapon_dmg':(4,1)}
 
 DB_KEYS=(
     ('game_id', 'string', GAME_ID_INIT),
@@ -35,12 +45,14 @@ DB_KEYS_FIX=[]
 
 class DataBase:
     def __init__(self, GameInfo=None, Log=None):
-        self.r_server = redis.Redis('localhost')
+        self.r_server = None
         self.Log = Log
+        self.Game = GameInfo
         
     def connect(self):
         try:
-            self. r_server = redis.Redis('localhost')
+            self.r_server = redis.Redis('localhost')
+            print 'connected to server'
         except redis.RedisError as error:
             #check to see how i can pull more informationf
             print('Error Connecting to the redis server.\n')
@@ -49,27 +61,29 @@ class DataBase:
 
     #check if base ids are strings
     def db_check(self):
+        print 'checking database'
         db_pass = True
         for curr_key in DB_KEYS: 
-            if check_key(key=curr_key[KEY], key_type=curr_key[KEY_TYPE]) is False:
+            if self.check_key(key=curr_key[KEY], expected_type=curr_key[KEY_TYPE]) is False:
                 db_pass = False
-                db_key_state.push(curr_key)
-                #append key to fix !!!!NEED TO KNOW WHAT TO FIX I
+                DB_KEYS_FIX.append(curr_key)
         return db_pass
 
 
     def db_fix(self):
-        while db_keys_fix.count() > 1: #magic number
-            curr_key = db_keys_fix.pop()
-            self.r_server.remove(curr_key[KEY])
+        print 'fixing database'
+        while len(DB_KEYS_FIX) > 1: #magic number
+            curr_key = DB_KEYS_FIX.pop()
+            #self.r_server.remove(curr_key[KEY])
             if curr_key[INIT_VALUE] is not None:
-                self.r_server.set(key[KEY], key[INIT_VALUE])
+                self.r_server.set(curr_key[KEY], curr_key[INIT_VALUE])
 
     def new_game(self):
-        try:
+        print 'new game'
+        if self.r_server is not None:
             self.db_check()
             self.db_fix()
-
+            
             self.r_server.incr('game_id')
             self.Game.id = self.r_server.get('game_id')
             self.Game.key = 'game:'+str(self.Game.id)
@@ -84,17 +98,19 @@ class DataBase:
             self.Game.TeamA.key = 'team:' + str(self.Game.TeamA.id) + '-' + self.Game.key
             self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamA.name)
             self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamA.score)
-            
+        
             self.r_server.incr('team_id')
             self.Game.TeamB.id = self.r_server.get('team_id')
             self.Game.TeamB.key = 'team:' + str(self.Game.TeamB.id) + '-' + self.Game.key
-            self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamB.name)
-            self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamB.score)
+            self.r_server.rpush(self.Game.TeamB.key, self.Game.TeamB.name)
+            self.r_server.rpush(self.Game.TeamB.key, self.Game.TeamB.score)
             
-            self.new_action(self.Game.TeamA, action_type['engage'])
-            self.new_action(self.Game.TeamB, action_type['engage'])
-        except:
-            self.Log.write(msg='error while generating new game') #used to have +exc
+            self.new_action(self.Game.TeamA, ACTION['engage'])
+            self.new_action(self.Game.TeamB, ACTION['engage'])
+            print 'new game created'
+        else:
+            print 'error'
+            self.Log.write(msg='new_game: r_server was none') #used to have +exc
 
     def finish_game(self):
         self.r_server.lset(self.Game.key, 0, GAME_OVER) #magic number
@@ -121,112 +137,55 @@ class DataBase:
             self.r_server.rpush(action_key, action[TYPE])
             self.r_server.rpush(action_key, team_info.id)
             self.r_server.lpush('actions', action_key)
-            self.set_score(action[1]) #magic number
+            self.set_score(team_info.key,action[1]) #magic number
         else:
             self.Log.write(msg='Bad call of new_action with no team info.')
 
 
-    def check_score(score):
+    def check_score(self,score):
         if isinstance(score, int) and score >= 0:
-            return valid
+            return VALID
         else:
-            return invalid
+            return INVALID
 
-    def set_score(self, points_change):
-    #old_score access database's score
+    def set_score(self, team_key='', points_change=0):
+        old_score = self.get_score(team_key)
         new_score = old_score + points_change
-    #modify score
-        if(check_score(new_score)):
-        #database score update
-            return valid
-        else:    
-            return invalid
+        if(self.check_score(new_score)):
+            self.r_server.lset(team_key,TEAM_SCORE_OFF,new_score)
 
-    def get_score(self, TeamInfo=None):
-        if TeamInfo is not None:
-            r_server.mget(team_key)
+    def get_score(self, team_key=''):
+        if team_key is not '':
+           score_set = self.r_server.lrange(team_key,TEAM_SCORE_OFF,TEAM_SCORE_OFF)
+           print 'team_key: \''+team_key+'\''
+           return int(score_set[0])
 
-            
+    def set_time_left(self):
+        self.r_server.lset(self.Game.key, TIME_LEFT_OFF, self.Game.time_left)
+
+    def get_time_left(self):
+        time_left = self.r_server.lrange(self.Game.key, TIME_LEFT_OFF, TIME_LEFT_OFF)
+        return float(time_left[0])
+
     def update_time_left(self):
-        return True
+        time_left=self.get_end_time() - time.time()
+        if time_left >= 0:
+            self.Game.time_left = time_left
+        else:
+            self.Game.time_left = 0
+        self.set_time_left()
 
-    def update_time_end(self, time_end=1):
-        return False
+    def set_end_time(self):
+        self.r_server.lset(self.Game.key, TIME_END_OFF, self.Game.time_end)
 
-    def update_time_start(self, time_start=0):
-        return False
+    def get_end_time(self):
+        time_end = self.r_server.lrange(self.Game.key, TIME_END_OFF, TIME_END_OFF)
+        return float(time_end[0])
 
+    def set_time_start(self, time):
+        self.r_server.lrange(self.Game.key, TIME_START_OFF, self.Game.time_start)
 
-#notes
-# db_check and db_fix
-#    code functional for what it did before but is hocky and needs retouching
+    def get_time_start(self):
+        time_start = self.r_server.lrange(self.Game.key, TIME_START_OFF, TIME_START_OFF)
+        return float(time_start[0])
 
-# NEW GAME PSEUDO CODE
-# ::Game::
-# add to the front of game queue new game
-# pull from auto-incrment game-id / fill in game-id
-# pull from web new game wizard start-time / fill in start time
-# pull from web new game wizard end-time / fill in end time
-# calculate time-left / fill in time left
-# set finished to false
-
-# ::Red Team::
-# pull from current game-id fill in game-id
-# pull from auto-incrment team-id fill in team-id
-# pull from web new game wizard red team name fill in name
-# fill in score to 0
-
-# ::Blue Team::
-# pull from current game-id fill in game-id
-# pull from auto-incrment team-id fill in team-id
-# pull from web new game wizard blue team name fill in name
-# fill in score to 0
-
-# ::Red Team 1st Activity::
-# pull from pythons utc/epoch fill in time stamp
-# fill in action id with genesis/engage id
-# fill in red-teams id
-# fill in blue-teams change-in-score 0
-
-# ::Blue Team 1st Activity::
-# pull from pythons utc/epoch fill in time stamp
-# fill in action id with genesis/engage id
-# fill in red-teams id
-# fill in blue-teams change-in-score 0
-
-
-# possibly put in try...exception block to handle errors
-# check to see if base keys exist (team-id, game-id, games, teams, activity)
-# if not create them
-# check to see if time has passed
-# check to see if finished
-# make sure team-id is not bellow other team-ids
-# make sure gamke-id is not bellow other game-ids
-# make sure the scores 'balance'
-
-
-# if self.r_server.exists('team_id') is False:
-#     self.r_server.set('team_id', TEAM_ID_INIT)
-# else:
-#     self.r_server.type('team_id') is not 'string'
-#     print('team_id exists but is the wrong type')#needs to be a properly logged comment
-# if self.r_server.exists("game_id") is False:
-#     self.r_server.set("game_id", GAME_ID_INIT)
-# else:
-#     self.r_server.type('action_id') is not 'string'
-#     print('team_id exists but is the wrong type')#needs to be a properly logged comment
-# if self.r_server.exists("action_id") is False:
-#     if self.r_server.type('games') != 'list':
-#     self.r_server.set("action_id", ACTION_ID_INIT)
-# else:
-#     self.r_server.type('action_id') is not 'string'
-#     print('team_id exists but is the wrong type')#needs to be a properly logged comment
-# if self.r_server.exists('games') is True:
-#     if self.r_server.type('games') != 'list':
-#         print('Error w/ Db - games list is off')#needs to be a properly logged comment
-# if self.r_server.exists('actions') is True:
-#     if self.r_server.type('games') != 'list':
-#         print('Error w/ Db - actions list is off')#needs to be a properly logged comment
-# if self.r_server.exists('teams') is True:
-#     if self.r_server.type('games') != 'list':
-#         print('Error w/ Db - teams list is off')#needs to be a properly logged comment

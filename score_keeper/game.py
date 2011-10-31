@@ -32,5 +32,4 @@ class GameInfo:
         self.time_end = time_end
         self.time_left = time_end - time_start
 
-    def time_left(self):
-        return True
+
