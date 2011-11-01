@@ -1,32 +1,13 @@
 CC = gcc
 CFLAGS = -g -Wall -Werror
-OS = $(shell uname -s)
-PROC = $(shell uname -p)
-EXEC_SUFFIX=$(OS)-$(PROC)
-
-ifeq ("$(OS)", "SunOS")
-	OSLIB=-L/opt/csw/lib -R/opt/csw/lib -lsocket -lnsl
-	OSINC=-I/opt/csw/include
-	OSDEF=-DSOLARIS
-else
-ifeq ("$(OS)", "Darwin")
-	OSLIB=
-	OSINC=
-	OSDEF=-DDARWIN
-else
-	OSLIB=
-	OSINC=
-	OSDEF=-DLINUX
-endif
-endif
 
 all:  eng ship
 
-eng: eng.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o engd-$(EXEC_SUFFIX).o eng.c -Wpacked
+eng:
+	$(CC) -pthread -c -o eng.o eng.c -Wpacked
 
-ship: seng.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o seng-$(EXEC_SUFFIX).o seng.c ../includes/smartalloc.c engd-$(EXEC_SUFFIX).o
+ship: eng.o
+	$(CC) $(CFLAGS) -pthread -o seng seng.c ../includes/smartalloc.c eng.o
 
 clean:
-	rm -rf engd-* seng-*
+	rm -rf eng.o seng

@@ -1,32 +1,13 @@
 CC = gcc
 CFLAGS = -g -Wall -Werror
-OS = $(shell uname -s)
-PROC = $(shell uname -p)
-EXEC_SUFFIX=$(OS)-$(PROC)
-
-ifeq ("$(OS)", "SunOS")
-	OSLIB=-L/opt/csw/lib -R/opt/csw/lib -lsocket -lnsl
-	OSINC=-I/opt/csw/include
-	OSDEF=-DSOLARIS
-else
-ifeq ("$(OS)", "Darwin")
-	OSLIB=
-	OSINC=
-	OSDEF=-DDARWIN
-else
-	OSLIB=
-	OSINC=
-	OSDEF=-DLINUX
-endif
-endif
 
 all:  nav ship
 
-nav: nav.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -c -o nav-$(EXEC_SUFFIX).o nav.c -Wpacked
+nav:
+	$(CC) -pthread -c -o nav.o nav.c -Wpacked
 
-ship: snav.c
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -pthread -o snav-$(EXEC_SUFFIX).o snav.c ../includes/smartalloc.c nav-$(EXEC_SUFFIX).o
+ship: nav.o
+	$(CC) $(CFLAGS) -pthread -o snav snav.c ../includes/smartalloc.c nav.o
 
 clean:
-	rm -rf nav-* snav-*
+	rm -rf nav.o snav
