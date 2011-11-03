@@ -31,7 +31,8 @@ ACTION={
     'engage':(1,0),
     'game_over':(2,0),
     'service_down':(3,10),
-    'weapon_dmg':(4,1)}
+    'weapon_dmg':(4,1),
+    'lvl_complete':(5,15)}
 
 DB_KEYS=(
     ('game_id', 'string', GAME_ID_INIT),

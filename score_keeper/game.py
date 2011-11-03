@@ -10,6 +10,11 @@ SHIELDS_SRVC_OFF=4
 SRVC_DOWN = False
 SRVC_UP = True
 
+NUM_LVLS = 4
+LVL_COMPLETE = 0
+LVL_INCOMPLETE = 1
+LVL_SCORED = 2
+
 class TeamInfo:
     def __init__(self, name='', id=0, key='',sk_port=0):
         self.name = name
@@ -18,9 +23,12 @@ class TeamInfo:
         self.score = 0
         self.sk_port = sk_port
         self.services = []
+        self.lvls = []
         self.dmg = 0
         for spam in range(0,NUM_SRVCS):
             self.services.append(SRVC_DOWN)
+        for spam in range(0,NUM_LVLS):
+            self.lvls.append(LVL_INCOMPLETE)
             
         
 class GameInfo:
