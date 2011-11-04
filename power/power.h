@@ -117,8 +117,6 @@ extern struct PowerFuncs {
       |     |     |     |                                      |
       ----------------------------------------------------------
 
-
-
       Function Call Example:
          
       --> Incoming Connection Request
@@ -126,6 +124,10 @@ extern struct PowerFuncs {
             |--> pow_funcs.request_handler(connection_file_descriptor)
                |--> pow_funcs.wadd_power(int, int)
                   |--> add_power(int, int)
+
+      Do NOT send any messages to other services whilst inside your 
+         wrapper function. Your services' integrety can not be 
+         guaranteed during the tests otherwise.
    */
 
    int (*wregister_service) (int, int);

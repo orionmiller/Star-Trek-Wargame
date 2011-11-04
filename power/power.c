@@ -21,7 +21,6 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define MAX_SHIP_POWER 75
 #define MAX_RESERVE_POWER 35 
 #define INIT_POWER_ALLOC 10
-#define MAX_RESERVE_POWER_TIME 3600
 
 typedef struct srvcs_struct Service;
 
@@ -40,7 +39,6 @@ Service *servs = NULL;
 /* File Descriptors for Socketing */
 int sockfd;
 int httpPt;
-
 /* Temp Time */
 time_t tm;
 
@@ -167,7 +165,6 @@ void power_startup()
       return;
    }
    
-   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
    pthread_mutex_init(&mutex, &attr);
 
    /* Print to Log File? */
@@ -196,7 +193,7 @@ void power_startup()
 
    /* Install timer */
    setitimer(ITIMER_REAL, &test_tm, NULL);
-   
+
    /* Infinite loop for prompt? */
    while(running)
    {
@@ -508,7 +505,8 @@ int transfer_power(int amt, int src, int dest)
       if(s->pwr_alloc <= 0)
       {
          // Send SIGSTOP To Source's Process
-         kill(s->pid, SIGSTOP);
+         if(!testing)
+            kill(s->pid, SIGSTOP);
          
          tm = time(NULL);
          write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
@@ -553,7 +551,8 @@ int add_power(int amt, int dest)
       if(d->pwr_alloc <= 0)
       {
          /* Send SIGCONT to Destination's Process Id */
-         kill(d->pid, SIGCONT);
+         if(!testing)
+            kill(d->pid, SIGCONT);
          
          sprintf(tmp, ": Destination Service %d has lost ALL Power and is now Stopped\n",
             dest);
@@ -739,6 +738,9 @@ int reservePowerRemaining()
 /* Make sure you can't add more than the MAX available Ship power */
 int addTooMuchPower_test()
 {
+   /* Store old values */
+
+
    return -1;
 }
 

@@ -297,10 +297,11 @@ void engine_shutdown()
 
    /* Connect to Power Service and register self */
    bzero(&pwr_sck, sizeof(pwr_sck));
+   pwr_sck.sin_family = AF_INET;
 
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
-      pwr_sck.sin_port = htons(STATIC_PWR_PORT);
+      pwr_sck.sin_port = (STATIC_PWR_PORT);
       pwr_sck.sin_family = AF_INET;
    }
    else
@@ -364,7 +365,8 @@ int getPwrAlloc()
 
    /* Connect to Power Service and register self */
    bzero(&pwr_sck, sizeof(pwr_sck));
-   
+   pwr_sck.sin_family = AF_INET;
+
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
       pwr_sck.sin_port = (STATIC_PWR_PORT);
@@ -375,7 +377,7 @@ int getPwrAlloc()
       perror("Bad IP Address");
       return -1;
    }
-   
+
    if((pwr_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
    {
       perror("Socket Error");
