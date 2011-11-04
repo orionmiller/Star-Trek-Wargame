@@ -5,5 +5,11 @@
 *.log
 
 # Temp / Swap Files #
-*.swp
+.*.swp
 *.*~
+
+# Compiled versions
+spwr
+snav
+seng
+scomms

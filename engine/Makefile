@@ -1,13 +1,14 @@
 CC = gcc
-CFLAGS = -g -Wall -Werror
+DEBUG = -g
+CFLAGS = -Wall -Werror -lssl -lcrypto
 
 all:  eng ship
 
 eng:
-	$(CC) -pthread -c -o eng.o eng.c -Wpacked
+	$(CC) $(CFLAGS) -pthread -c -o eng.o eng.c -Wpacked
 
 ship: eng.o
-	$(CC) $(CFLAGS) -pthread -o seng seng.c ../includes/smartalloc.c eng.o
+	$(CC) $(DEBUG) $(CFLAGS) -pthread -o seng seng.c ../includes/smartalloc.c eng.o
 
 clean:
 	rm -rf eng.o seng

@@ -1,13 +1,14 @@
-C = gcc
-CFLAGS = -g -Wall -Werror
+CC = gcc
+DEBUG = -g
+CFLAGS = -Wall -Werror -lssl -lcrypto
 
 all:  power ship
 
 power: 
-	$(CC) -Wall -Werror -pthread -c -o pwr.o power.c -Wpacked 
+	$(CC) $(CFLAGS) -Wall -Werror -pthread -c -o pwr.o power.c -Wpacked 
 
 ship: pwr.o
-	$(CC) $(CFLAGS) -pthread -o spwr spower.c ../includes/smartalloc.c pwr.o
+	$(CC) $(DEBUG) $(CFLAGS) -pthread -o spwr spower.c ../includes/smartalloc.c pwr.o
 
 clean:
 	rm pwr.o spwr

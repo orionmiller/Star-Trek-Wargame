@@ -488,6 +488,7 @@ int getSKConnection()
 */
 int getMap()
 {
+   return 0;
 }
 
 /* 
