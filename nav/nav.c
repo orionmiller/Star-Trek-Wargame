@@ -23,28 +23,30 @@ Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
 #define SCORE_KEEPER_PORT 1234
 #define MAX_SHIP_WARP 9
 #define MAX_SHIP_DMG 25
+#define GRID_DIM 405000
+#define NUM_GRIDS 40
+#define TEAM_ID 1701
 
 typedef struct map_struct MapObject;
 
-struct map_struct
+/* struct map_struct
 {
    int obj_type;
    int x_pos;
    int y_pos;
    MapObject *next;
-};
+}; */
 
 struct Navigation_Stats
 {
    int map_x;              /* The number of grid units in the x direction */
    int map_y;              /* The number of grid units in the y direction */
-   int map_dim;            /* The number of Kilometers across a grid */
+   int grid_dim;            /* The number of Kilometers across a grid */
    int eng_type;           /* The type of engine currently engaged */
    int speed;              /* The current speed index for the type of engine current engaged */
    int ship_dir;           /* The current direction the ship is moving */
    int pos_x, pos_y;       /* The current x and y grid coordinates of the ship's position */
    time_t course_changed;  /* The time the current course settings were made */
-   MapObject *map_objs;    /* An array list of objects in the map */
 } nav_stats;
 
 /* Engine Speed Conversions (in km/Hour) Using 300,000 m/s as C */
@@ -168,11 +170,10 @@ void navigation_startup()
       return;
    }
    
-   if(getMap() < 0)
-   {
-      printf("Error getting map from Score Keeper\n");
-      return;
-   }
+   /* Setup the Game's Map */
+   nav_stats.map_x = NUM_GRIDS;
+   nav_stats.map_y = NUM_GRIDS;
+   nav_stats.grid_dim = GRID_DIM;
 
    /* Setup and Bind STATIC_PORT */
    bzero(&sck, sizeof(sck));
@@ -487,90 +488,6 @@ int getSKConnection()
 */
 int getMap()
 {
-   int sk_sockfd;
-   char *tmp;
-   char *otok, *itok;
-   char **sptr_out = NULL, **sptr_in = NULL;
-   MapObject *tmpObj;
-
-   tmp = (char *)malloc(100);
-   bzero(&tmp, 100);
-   
-   /* Connect to Score Keeper and request Map */
-   if((sk_sockfd = getSKConnection() == -1))
-      return -1;
-
-   sprintf(tmp, "request map\n");
-   tmp[strlen(tmp)] = '\0';
-
-   /* Get current map from ScoreKeeper */
-   if(write(sk_sockfd, (void *)tmp, strlen(tmp)) < 0)
-   {
-      perror("Communicating to Score Keeper for Map");
-      return -1;
-   }
-   
-   if(read(sk_sockfd, (void *)tmp, 100) < 0)
-   {
-      perror("Receiving Map from Score Keeper");
-      return -1;
-   }
-
-   close(sk_sockfd);
-
-   /* Get Map X Width */
-   otok = strtok_r(tmp, ",", sptr_out);
-   itok = strtok_r(otok, ":", sptr_in);
-   itok = strtok_r(NULL, ":", sptr_in);
-   nav_stats.map_x = atoi(itok);
-
-   /* Get Map Y Length */
-   otok = strtok_r(NULL, ",", sptr_out);
-   itok = strtok_r(otok, ":", sptr_in);
-   itok = strtok_r(NULL, ":", sptr_in);
-   nav_stats.map_y = atoi(itok);
-
-   /* Get Map Grid Demension */
-   otok = strtok_r(NULL, ",", sptr_out);
-   itok = strtok_r(otok, ":", sptr_in);
-   itok = strtok_r(NULL, ",", sptr_in);
-   nav_stats.map_dim = atoi(itok);
-
-   /* Get Ship Init X Pos */
-   otok = strtok_r(NULL, ",", sptr_out);
-   itok = strtok_r(otok, ":", sptr_in);
-   itok = strtok_r(NULL, ":", sptr_in);
-   nav_stats.pos_x = atoi(itok);
-
-   /* Get Ship Init Y Pos */
-   otok = strtok_r(NULL, ",", sptr_out);
-   itok = strtok_r(otok, ":", sptr_in);
-   itok = strtok_r(NULL, ":", sptr_in);
-   nav_stats.pos_y = atoi(itok);
-
-   /* Get Map Objects */
-   while((otok = strtok_r(NULL, ",", sptr_out)))
-   {
-      tmpObj = (MapObject *)malloc(sizeof(MapObject));
-      itok = strtok_r(otok, ":", sptr_in);
-      itok = strtok_r(NULL, ":", sptr_in);
-      tmpObj->obj_type = atoi(itok);
-      
-      otok = strtok_r(NULL, ",", sptr_out);
-      itok = strtok_r(otok, ":", sptr_in);
-      itok = strtok_r(NULL, ":", sptr_in);
-      tmpObj->x_pos = atoi(itok);
-
-      otok = strtok_r(NULL, ",", sptr_out);
-      itok = strtok_r(otok, ":", sptr_in);
-      itok = strtok_r(NULL, ":", sptr_in);
-      tmpObj->y_pos = atoi(itok);
-      
-      tmpObj->next = nav_stats.map_objs;
-      nav_stats.map_objs = tmpObj;
-   }
-   
-   return 1;
 }
 
 /* 
@@ -786,9 +703,9 @@ int set_course(int crs_dir, int eng_type, int speed)
          d = v * t_min;
 
          /* IF they are at least 80% of the way to the next box THEN */
-         if((d / nav_stats.map_dim) >= .80)
+         if((d / nav_stats.grid_dim) >= .80)
          {
-            num_grids = d / nav_stats.map_dim;
+            num_grids = d / nav_stats.grid_dim;
             /* Round up and Move them to the next box */
             switch(nav_stats.ship_dir)
             {
