@@ -1,14 +1,17 @@
 CC = gcc
 DEBUG = -g
-CFLAGS = -Wall -Werror -lssl -lcrypto
+WARNFLAGS = -Wall -Werror
+SSLFLGAS = -lssl -lcrypto
+INCLUDE = ../includes/smartalloc.c
 
 all:  eng ship
 
 eng:
-	$(CC) $(CFLAGS) -pthread -c -o eng.o eng.c -Wpacked
+	$(CC) $(WARNFLAGS) -pthread -c -o eng.o eng.c -Wpacked
 
-ship: eng.o
-	$(CC) $(DEBUG) $(CFLAGS) -pthread -o seng seng.c ../includes/smartalloc.c eng.o
+ship:
+	$(CC) $(WARNFLAGS) -pthread -c -o seng.o seng.c  
+	$(CC) $(DEBUG) $(WARNFLAGS) $(INCLUDE) -pthread -o seng seng.o eng.o $(SSLFLAGS)
 
 clean:
-	rm -rf eng.o seng
+	rm -rf eng.o seng.o seng
