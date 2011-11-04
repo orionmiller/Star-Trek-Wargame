@@ -13,6 +13,9 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <openssl/rand.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
 
@@ -124,10 +127,13 @@ extern struct PowerFuncs {
             |--> pow_funcs.request_handler(connection_file_descriptor)
                |--> pow_funcs.wadd_power(int, int)
                   |--> add_power(int, int)
+                  |--> send_packet(struct PowerHeader, socket_fd)
 
-      Do NOT send any messages to other services whilst inside your 
-         wrapper function. Your services' integrety can not be 
-         guaranteed during the tests otherwise.
+      You MUST send your data packet AFTER you call the built-in functions.
+         Your implementation correctness can not be guaranteed otherwise.
+
+      Your wrapper functions should return -1 on ANY error which results
+         in the request not being processed or completed.
    */
 
    int (*wregister_service) (int, int);
@@ -252,6 +258,22 @@ extern int add_power(int amt, int dest);
       Service, or -1 on error.
 */
 extern int free_power(int amt, int dest);
+
+/*
+   Sends data out to the previously connect(2)'ed TCP connection using 
+      'socket_fd'. You should set-up your sockaddr_t, use socket(2) and
+      then connect(2) before you call this function to send data out. 
+   
+   You must use this function to send packets to other services. If you
+      do not use this function, you may fail the basic functionality
+      tests and lose points.
+
+   RETURNS 1 when the send was successful, -1 on error, or 0 when testing.
+      When testing and 0 is returned, you should ignore all previous
+      changes made during the wrapper function call. ie, don't save the
+      state.
+*/
+extern int send_packet(struct PowerHeader *pck, int socket_fd);
 
 /*
    Prints the current list of registered services and their status for 

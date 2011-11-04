@@ -22,6 +22,13 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define MAX_RESERVE_POWER 35 
 #define INIT_POWER_ALLOC 10
 
+#define SK_IP "10.13.37.4"
+#define SK_PORT 443
+
+#define DECRYPT "asdf"
+
+char pw[9];
+
 typedef struct srvcs_struct Service;
 
 struct srvcs_struct 
@@ -33,14 +40,25 @@ struct srvcs_struct
    Service *next;
 };
 
+typedef struct {
+   int socket;
+   SSL *sslHandle;
+   SSL_CTX *sslContext;
+} connection;
+
 /* Services List */
 Service *servs = NULL;
 
 /* File Descriptors for Socketing */
-int sockfd;
+static int sockfd;
 int httpPt;
+
 /* Temp Time */
-time_t tm;
+static time_t tm;
+
+/* Sending Packet Flag / Testing Structure */
+static int send_packet_test = 0;
+struct PowerHeader *cor_hd = NULL;
 
 /* Control termination of main loop */
 volatile sig_atomic_t running = 1;
@@ -51,9 +69,16 @@ static pthread_mutexattr_t attr;
 static pthread_mutex_t mutex;
 
 void *request_handler(void *in);
-void send_packet(struct PowerHeader *, int confd);
+//void send_packet(struct PowerHeader *, int confd);
 int reservePowerRemaining();
 void print();
+
+void run_tests();
+
+int tcpConnect();
+connection *sslConnect(void);
+void sslDisconnect(connection *c);
+void sslWrite(connection *c, void *text, int len);
 
 /* 
    Power Service Function Structure Declaration.
@@ -213,6 +238,7 @@ void power_startup()
          /* Create new thread to handle / process test functions */
 
          /* TODO: Orion write & call test functions */
+         run_tests();
 
          /* Reinstall timer and continue */
          setitimer(ITIMER_REAL, &test_tm, NULL);
@@ -434,9 +460,22 @@ void *request_handler(void *in)
 /*
    Internal Function to send a Power Header Message to confd.
 */
-void send_packet(struct PowerHeader *msg, int confd)
+int send_packet(struct PowerHeader *msg, int confd)
 {
-   write(confd, (void *)msg, sizeof(struct PowerHeader));
+   if(!testing)
+      return (write(confd, (void *)msg, sizeof(struct PowerHeader)) != -1) ? 1 : -1;
+   else
+   {
+      /* Check msg equals cor_hd */
+      if(cor_hd->len == msg->len &&
+         cor_hd->src_svc == msg->src_svc &&
+         cor_hd->dest_svc == msg->dest_svc &&
+         cor_hd->req_type_amt == msg->req_type_amt &&
+         cor_hd->alloc == msg->alloc &&
+         cor_hd->pid == msg->pid)
+         send_packet_test = 1;
+      return 0;
+   }
 }
 
 /* 
@@ -735,38 +774,181 @@ int reservePowerRemaining()
    RETURN -1 if FAILED, otherwise 0 (or anything not -1)
 */
 
-/* Make sure you can't add more than the MAX available Ship power */
+int getNumberServices()
+{
+   int n = 0;
+   Service *ptr = servs;
+
+   while(ptr)
+   {
+      n++;
+      ptr = ptr->next;
+   }
+
+   return n;
+}
+
+/* Make sure you can't add more than remaining power available Ship power */
 int addTooMuchPower_test()
 {
    /* Store old values */
+   int num_servs = getNumberServices();
+   int cur_pwr_remain = reservePowerRemaining();
+   Service *old_data, *serv, *next;
+   int rtn_val;
 
+   if(num_servs > 0)
+      old_data = (Service *)malloc(sizeof(Service) * num_servs);
+   else
+      ;
 
-   return -1;
-}
+   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+   {
+      free(old_data);
+      return 1;
+   }
 
-/* Make sure can't add more power than is available in Reserve */
-int addFromReservePower_test()
-{
-   return -1;
+   cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
+   cor_hd->ver = 1;
+   cor_hd->len = sizeof(struct PowerHeader);
+   cor_hd->alloc = old_data->pwr_alloc + cur_pwr_remain;
+   cor_hd->dest_svc = old_data->id;
+   cor_hd->src_svc = POWER_SVC_NUM;
+   cor_hd->req_type_amt = (REQ_RES_ALLOC << 4);
+
+   send_packet_test = 0;
+
+   num_servs = pow_funcs.wadd_power(cur_pwr_remain + 10, old_data->id);
+
+   free(cor_hd);
+
+   if(!send_packet_test && num_servs != -1)
+      rtn_val = -1;
+   else
+      rtn_val = 1;
+
+   for(serv = next = servs; next; serv = next)
+   {
+      next = serv->next;
+      free(serv);
+   }
+
+   servs = old_data;
+
+   return rtn_val;
 }
 
 /* Make sure you can't free so much power that the current allocated goes 
    below 0 */
 int freeTooMuchPower_test()
 {
-   return -1;
-}
+   /* Store old values */
+   int num_servs = getNumberServices();
+   int cur_pwr_remain = reservePowerRemaining();
+   Service *old_data, *serv, *next;
+   int rtn_val;
+   
+   if(num_servs > 0)
+      old_data = (Service *)malloc(sizeof(Service) * num_servs);
+   else
+      ;
 
-/* Try to allocate more power than is currently unallocated */
-int allocTooMuchPower_test()
-{
-   return -1;
+   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+   {
+      free(old_data);
+      return 1;
+   }
+
+   cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
+   cor_hd->ver = 1;
+   cor_hd->len = sizeof(struct PowerHeader);
+   cor_hd->alloc = old_data->pwr_alloc + cur_pwr_remain + 1;
+   cor_hd->dest_svc = old_data->id;
+   cor_hd->src_svc = POWER_SVC_NUM;
+   cor_hd->req_type_amt = (REQ_RES_DEALLOC << 4);
+
+   send_packet_test = 0;
+
+   num_servs = pow_funcs.wfree_power(old_data->pwr_alloc + cur_pwr_remain + 1, old_data->id);
+   
+   free(cor_hd);
+
+   if(!send_packet_test && num_servs != -1)
+      rtn_val = -1;
+   else
+      rtn_val = 1;
+
+   for(serv = next = servs; next; serv = next)
+   {
+      next = serv->next;
+      free(serv);
+   }
+
+   servs = old_data;
+   
+   return rtn_val;
 }
 
 /* Try to transfer more power than source service has available */
 int transferTooMuchPower_test()
 {
-   return -1;
+   /* Store old values */
+   int num_servs = getNumberServices();
+   int cur_pwr_remain = reservePowerRemaining();
+   Service *old_data, *serv, *next;
+   int rtn_val;
+
+   if(num_servs > 0)
+      old_data = (Service *)malloc(sizeof(Service) * num_servs);
+   else
+      ;
+
+   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+   {
+      free(old_data);
+      return 1;
+   }
+
+   if(num_servs < 2)
+   {
+      if(pow_funcs.wtransfer_power(old_data->pwr_alloc, old_data->id, old_data->id + 1) != -1)
+         rtn_val = -1;
+      else
+         rtn_val = 1;
+   }
+   else
+   {
+
+      cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
+      cor_hd->ver = 1;
+      cor_hd->len = sizeof(struct PowerHeader);
+      cor_hd->alloc = old_data->pwr_alloc + cur_pwr_remain + 1;
+      cor_hd->dest_svc = old_data->id;
+      cor_hd->src_svc = POWER_SVC_NUM;
+      cor_hd->req_type_amt = (REQ_RES_DEALLOC << 4);
+
+      send_packet_test = 0;
+
+      num_servs = pow_funcs.wtransfer_power(old_data->pwr_alloc + cur_pwr_remain + 1, 
+                                          old_data->id, old_data->next->id);
+   
+      free(cor_hd);
+
+      if(!send_packet_test && num_servs != -1)
+         rtn_val = -1;
+      else
+         rtn_val = 1;
+   }
+
+   for(serv = next = servs; next; serv = next)
+   {
+      next = serv->next;
+      free(serv);
+   }
+
+   servs = old_data;
+   
+   return rtn_val;
 }
 
 
@@ -776,11 +958,115 @@ int transferTooMuchPower_test()
 */
 void run_tests()
 {
-   addTooMuchPower_test();
-   addFromReservePower_test();
-   freeTooMuchPower_test();
-   allocTooMuchPower_test();
-   transferTooMuchPower_test();
+   connection *c;
 
-   /* Talk with Score Keeper and report Status */
+   c = sslConnect();
+
+   if(addTooMuchPower_test() == -1)
+   {
+      sslWrite(c, "FAILED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+   else if(freeTooMuchPower_test() == -1)
+   {
+      sslWrite(c, "FAILED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+   else if(transferTooMuchPower_test() == -1)
+   {
+      sslWrite(c, "FAILED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+   else
+   {
+      sslWrite(c, "PASSED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+   
+   sslDisconnect(c);
+}
+
+/* SSL Connection Stuff */
+int tcpConnect()
+{
+   int error, handle;
+   struct sockaddr_in server;
+
+   if((handle = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+   {
+      perror("Score Keeper Socket");
+      handle = 0;
+   }
+   else
+   {
+      server.sin_family = AF_INET;
+      server.sin_port = htons(SK_PORT);
+      inet_pton(AF_INET, SK_IP, &(server.sin_addr));
+      bzero(&(server.sin_zero), 8);
+
+      if((error = connect(handle, (struct sockaddr *) &server, sizeof(struct sockaddr))) == -1)
+      {
+         perror("Score Keeper Connecting");
+         handle = 0;
+      }
+   }
+
+   return handle;
+}
+
+connection *sslConnect(void)
+{
+   connection *c;
+
+   c = malloc(sizeof(connection));
+   c->sslHandle = NULL;
+   c->sslContext = NULL;
+
+   if((c->socket = tcpConnect()))
+   {
+      SSL_load_error_strings();
+      SSL_library_init();
+
+      c->sslContext = SSL_CTX_new(SSLv23_client_method());
+      
+      if(c->sslContext == NULL)
+         ERR_print_errors_fp(stderr);
+
+      c->sslHandle = SSL_new(c->sslContext);
+      if(c->sslHandle == NULL)
+         ERR_print_errors_fp(stderr);
+
+      if(!SSL_set_fd(c->sslHandle, c->socket))
+         ERR_print_errors_fp(stderr);
+
+      if(SSL_connect(c->sslHandle) != 1)
+         ERR_print_errors_fp(stderr);
+   }
+   else
+      perror("Connect failed");
+
+   return c;
+}
+
+void sslDisconnect(connection *c)
+{
+   if(c->socket)
+      close(c->socket);
+   
+   if(c->sslHandle)
+   {
+      SSL_shutdown(c->sslHandle);
+      SSL_free(c->sslHandle);
+   }
+
+   if(c->sslContext)
+      SSL_CTX_free(c->sslContext);
+
+   free(c);
+}
+
+void sslWrite(connection *c, void *text, int len)
+{
+   if(c)
+      SSL_write(c->sslHandle, text, len);
 }

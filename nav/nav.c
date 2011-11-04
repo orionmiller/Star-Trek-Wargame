@@ -90,6 +90,13 @@ void *draw_map(void *);
 void print_navigation_status(void);
 void reset_navs(int, int, int, int, int);
 
+void run_tests();
+
+int tcpConnect();
+connection *sslConnect(void);
+void sslDisconnect(connection *c);
+void sslWrite(connection *c, void *text, int len);
+
 /* 
    Navigation Service Function Structure Declaration.
    
@@ -266,6 +273,7 @@ void navigation_startup()
          /* Create new thread to handle / process test functions */
 
          /* TODO: Orion write & call test functions */
+         run_tests();
 
          /* Reinstall testing timer */
          testing = 0;
@@ -848,4 +856,89 @@ void run_tests()
    courseRange_test();
    engineSpeedRange_test();
    engineSwitch_test();
+}
+
+/* SSL Connection Stuff */
+int tcpConnect()
+{
+   int error, handle;
+   struct sockaddr_in server;
+
+   if((handle = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+   {
+      perror("Score Keeper Socket");
+      handle = 0;
+   }
+   else
+   {
+      server.sin_family = AF_INET;
+      server.sin_port = htons(SK_PORT);
+      inet_pton(AF_INET, SK_IP, &(server.sin_addr));
+      bzero(&(server.sin_zero), 8);
+
+      if((error = connect(handle, (struct sockaddr *) &server, sizeof(struct sockaddr))) == -1)
+      {
+         perror("Score Keeper Connecting");
+         handle = 0;
+      }
+   }
+
+   return handle;
+}
+
+connection *sslConnect(void)
+{
+   connection *c;
+
+   c = malloc(sizeof(connection));
+   c->sslHandle = NULL;
+   c->sslContext = NULL;
+
+   if((c->socket = tcpConnect()))
+   {
+      SSL_load_error_strings();
+      SSL_library_init();
+
+      c->sslContext = SSL_CTX_new(SSLv23_client_method());
+      
+      if(c->sslContext == NULL)
+         ERR_print_errors_fp(stderr);
+
+      c->sslHandle = SSL_new(c->sslContext);
+      if(c->sslHandle == NULL)
+         ERR_print_errors_fp(stderr);
+
+      if(!SSL_set_fd(c->sslHandle, c->socket))
+         ERR_print_errors_fp(stderr);
+
+      if(SSL_connect(c->sslHandle) != 1)
+         ERR_print_errors_fp(stderr);
+   }
+   else
+      perror("Connect failed");
+
+   return c;
+}
+
+void sslDisconnect(connection *c)
+{
+   if(c->socket)
+      close(c->socket);
+   
+   if(c->sslHandle)
+   {
+      SSL_shutdown(c->sslHandle);
+      SSL_free(c->sslHandle);
+   }
+
+   if(c->sslContext)
+      SSL_CTX_free(c->sslContext);
+
+   free(c);
+}
+
+void sslWrite(connection *c, void *text, int len)
+{
+   if(c)
+      SSL_write(c->sslHandle, text, len);
 }

@@ -13,6 +13,9 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <openssl/rand.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
 #include "../includes/eng_packet.h"
@@ -119,6 +122,12 @@ extern struct EngineFuncs {
             |--> eng_funcs.request_handler(connection_file_descriptor)
                |--> eng_funcs.wengage_impulse(int)
                   |--> engage_impulse(int)
+                  
+      You MUST send your data packet AFTER you call the built-in functions.
+         Your implementation correctness can not be guaranteed otherwise.
+
+      Your wrapper functions should return -1 on ANY error which results
+         in the request not being processed or completed.
    */
    
    int (*wengage_impulse) (int);
@@ -201,3 +210,19 @@ extern int engage_warp(int speed);
    RETURNS the current Warp Speed Index, or -1 on error.
 */
 extern int warp_speed(int speed);
+
+/*
+   Sends data out to the previously connect(2)'ed TCP connection using 
+      'socket_fd'. You should set-up your sockaddr_t, use socket(2) and
+      then connect(2) before you call this function to send data out. 
+   
+   You must use this function to send packets to other services. If you
+      do not use this function, you may fail the basic functionality
+      tests and lose points.
+
+   RETURNS 1 when the send was successful, -1 on error, or 0 when testing.
+      When testing and 0 is returned, you should ignore all previous
+      changes made during the wrapper function call. ie, don't save the
+      state.
+*/
+extern int send_packet(struct EngineHeader *pck, int socket_fd);
