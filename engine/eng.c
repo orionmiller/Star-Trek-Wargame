@@ -30,9 +30,22 @@ Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
 #define SK_IP "10.13.37.40"
 #define SK_PORT 443
 
-#define DECRYPT "asdf"
+/* 
+   DECRYPTING DEFINES ORDER
+   XOR -> SWAP -> SUB -> FLIP
+*/
+#define SWAP(pass) ((*pass)=(((*pass)&0x0F)<<4) | (((*pass)&0xF0)>>4))
+#define XOR(pass) ((*pass)=(*pass)^0x7B)
+#define SUB(pass) ((*pass)-=7)
+#define FLIP(pass) ((*pass)=~(*pass))
 
-char pw[9];
+#define TEAM_ID 0
+
+/* Team A */
+char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
+
+/* Team B */
+//char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
 
 /* Power Usages for Speeds where 0th Index is Impulse */
 int eng_pwr_use[10] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
@@ -1011,27 +1024,53 @@ int setImpSpeed_test()
 */
 void run_tests()
 {
-   connection *c;
-
-   c = sslConnect();
+//   connection *c;
+   char *tmp = malloc(12);
+   int i;
+   unsigned char *pw = malloc(9);
+   pw = memcpy(pw, &phraser, 9);
+   
+//   c = sslConnect();
 
    if(initWarp_test() == -1 ||
-      initImpulse_test() == -1 ||
-      validImpSpeeds_test() == -1 ||
-      validWarpSpeeds_test() == -1 ||
-      setWarpSpeed_test() == -1 ||
-      setImpSpeed_test() == -1)
+         initImpulse_test() == -1 ||
+         validImpSpeeds_test() == -1 ||
+         validWarpSpeeds_test() == -1 ||
+         setWarpSpeed_test() == -1 ||
+         setImpSpeed_test() == -1 ||
+         estat.eng_dmg >= MAX_SHIP_DMG)
    {
-      sslWrite(c, "FAILED\n", 8);
-      sslWrite(c, pw, 9);
+      for(i = 0; i < 9; i++)
+      {
+         XOR((pw+i));
+         SWAP((pw+i));
+         SUB((pw+i));
+         FLIP((pw+i));
+         tmp[i] = pw[i];
+      }
+      free(pw);
+      tmp[11] = 0;
    }
    else
    {
-      sslWrite(c, "PASSED\n", 8);
-      sslWrite(c, pw, 9);
+      for(i = 0; i < 9; i++)
+      {
+         XOR((pw+i));
+         SWAP((pw+i));
+         SUB((pw+i));
+         FLIP((pw+i));
+         tmp[i] = pw[i];
+      }
+      free(pw);
+      tmp[11] = 1;
    }
 
-   sslDisconnect(c);
+   tmp[9] = TEAM_ID;
+   tmp[10] = ENGINES_SVC_NUM;
+
+//   sslWrite(c, tmp, 12);
+   free(tmp);
+//   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */

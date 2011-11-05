@@ -18,36 +18,48 @@ Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
 #include "nav.h"
 #include <time.h>
 
-#define SK_IP "10.13.37.4"
-#define SK_PORT 1025
-#define SCORE_KEEPER_PORT 1234
+#define SK_IP "10.13.37.40"
+#define SK_PORT 443
+#define TEAM_A_SK_PORT 25668
+#define TEAM_B_SK_PORT 22456
 #define MAX_SHIP_WARP 9
 #define MAX_SHIP_DMG 25
 #define GRID_DIM 405000
 #define NUM_GRIDS 40
-#define TEAM_ID 1701
 
-typedef struct map_struct MapObject;
+/* 
+   DECRYPTING DEFINES ORDER
+   XOR -> SWAP -> SUB -> FLIP
+*/
+#define SWAP(pass) ((*pass)=(((*pass)&0x0F)<<4) | (((*pass)&0xF0)>>4))
+#define XOR(pass) ((*pass)=(*pass)^0x7B)
+#define SUB(pass) ((*pass)-=7)
+#define FLIP(pass) ((*pass)=~(*pass))
 
-/* struct map_struct
-{
-   int obj_type;
-   int x_pos;
-   int y_pos;
-   MapObject *next;
-}; */
+#define TEAM_ID 0
+
+/* Team A */
+char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
+
+/* Team B */
+//char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
 
 struct Navigation_Stats
 {
-   int map_x;              /* The number of grid units in the x direction */
-   int map_y;              /* The number of grid units in the y direction */
-   int grid_dim;            /* The number of Kilometers across a grid */
    int eng_type;           /* The type of engine currently engaged */
    int speed;              /* The current speed index for the type of engine current engaged */
    int ship_dir;           /* The current direction the ship is moving */
    int pos_x, pos_y;       /* The current x and y grid coordinates of the ship's position */
    time_t course_changed;  /* The time the current course settings were made */
 } nav_stats;
+
+struct Navigation_Stats test_stats;
+
+typedef struct {
+   int socket;
+   SSL *sslHandle;
+   SSL_CTX *sslContext;
+} connection;
 
 /* Engine Speed Conversions (in km/Hour) Using 300,000 m/s as C */
 //static uint32_t imp_spd_hr[7] = {0, 67500, 90000, 135000, 180000, 202500, 270000};
@@ -177,11 +189,6 @@ void navigation_startup()
       return;
    }
    
-   /* Setup the Game's Map */
-   nav_stats.map_x = NUM_GRIDS;
-   nav_stats.map_y = NUM_GRIDS;
-   nav_stats.grid_dim = GRID_DIM;
-
    /* Setup and Bind STATIC_PORT */
    bzero(&sck, sizeof(sck));
    
@@ -238,7 +245,7 @@ void navigation_startup()
    /* Setup timers */
    testtv.it_interval.tv_sec = testtv.it_interval.tv_usec = 0;
    resttv.it_interval.tv_sec = resttv.it_interval.tv_usec = 0;
-   testtv.it_value.tv_sec = 60;
+   testtv.it_value.tv_sec = 3;
    testtv.it_value.tv_usec = 0;
    resttv.it_value.tv_sec = resttv.it_value.tv_usec = 0;
    
@@ -441,64 +448,6 @@ int getPwrAlloc()
    return pwr_alloc;
 }
 
-int getSKConnection()
-{
-   int sk_sockfd;
-   struct sockaddr_in sk_sck;
-
-   /* Connect to Score Keeper and request Map */
-   bzero(&sk_sck, sizeof(sk_sck));
-   sk_sck.sin_family = AF_INET;
-
-   if(inet_pton(AF_INET, SK_IP, &(sk_sck.sin_addr)) > 0)
-      sk_sck.sin_port = (SK_PORT);
-   else
-   {
-      perror("Bad IP Address");
-      return -1;
-   }
-   
-   if((sk_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-   {
-      perror("Socket Error");
-      return -1;
-   }
-
-   if(connect(sk_sockfd, (struct sockaddr *)&sk_sck, sizeof(sk_sck)) == -1)
-   {
-      perror("Score Keeper Connecting Error");
-      return -1;
-   }
-
-   return sk_sockfd;
-}
-
-/* 
-   Connect to the Score Keeper and get the Map.
-
-   Request Message:
-      <Team Name> request map
-
-   Response Message:
-      x:int,y:int,dim:int,px:int,py:int(,<opxt:int,opx:int,opy:int>)*
-
-      Where:
-      - x:int is the width of the map (horizontal size)
-      - y:int is the length of the map (vertical size)
-      - dim:int is the x and y dimention of a grid
-      - px:int the x position index for this ship to start in
-      - py:int the y position index for this ship to start in
-      - opt:int the type of the following object
-      - opx:int the x position index of an object (optional)
-      - opy:int the y position index of an object (optional)
-   
-   RETURNS 1 on success or -1 on error.
-*/
-int getMap()
-{
-   return 0;
-}
-
 /* 
    For receiving incoming data from a socket.
    
@@ -674,9 +623,18 @@ int set_course(int crs_dir, int eng_type, int speed)
    int num_xgrids, num_ygrids, num_grids;
    int v;
    int t_min;
-   int x, y;
-   int sk_sockfd;
+   int x, y, i;
    char *tmp;
+//   connection *c;
+   unsigned char *pw;
+
+   if(testing)
+   {
+      test_stats.eng_type = eng_type;
+      test_stats.speed = speed;
+      test_stats.ship_dir = crs_dir;
+      return -1;
+   }
 
    pthread_mutex_lock(&mutex);
    /* IF can make these changes THEN */
@@ -692,13 +650,9 @@ int set_course(int crs_dir, int eng_type, int speed)
          || nav_stats.eng_type == SHUTDOWN_DRIVE) &&
       speed_check(eng_type, speed))
    {
-      /* Get connection to Score Keeper or FAIL */
-      if((sk_sockfd = getSKConnection()) == -1)
-      {
-         pthread_mutex_unlock(&mutex);
-         return -1;
-      }
-         
+      /* Get connection to Score Keeper */
+//      c = sslConnect();
+
       /* IF the speed || direction has changed, then update x and y positions */
       if(nav_stats.speed != speed || nav_stats.ship_dir != crs_dir)
       {
@@ -712,9 +666,9 @@ int set_course(int crs_dir, int eng_type, int speed)
          d = v * t_min;
 
          /* IF they are at least 80% of the way to the next box THEN */
-         if((d / nav_stats.grid_dim) >= .80)
+         if((d / GRID_DIM) >= .80)
          {
-            num_grids = d / nav_stats.grid_dim;
+            num_grids = d / GRID_DIM;
             /* Round up and Move them to the next box */
             switch(nav_stats.ship_dir)
             {
@@ -750,38 +704,49 @@ int set_course(int crs_dir, int eng_type, int speed)
             }
 
             /* Scale up to the number of grids they moved */
-            num_ygrids = y * (num_grids % nav_stats.map_y);
-            num_xgrids = x * (num_grids % nav_stats.map_x);
+            num_ygrids = y * (num_grids % NUM_GRIDS);
+            num_xgrids = x * (num_grids % NUM_GRIDS);
 
-            if(nav_stats.pos_x + num_xgrids >= nav_stats.map_x)
-               nav_stats.pos_x = (num_xgrids -= (nav_stats.map_x - 1 - nav_stats.pos_x)) - 1;
+            if(nav_stats.pos_x + num_xgrids >= NUM_GRIDS)
+               nav_stats.pos_x = (num_xgrids -= (NUM_GRIDS - 1 - nav_stats.pos_x)) - 1;
             else if(nav_stats.pos_x + num_xgrids < 0)
-               nav_stats.pos_x = nav_stats.map_x - (num_xgrids - nav_stats.pos_x);
+               nav_stats.pos_x = NUM_GRIDS - (num_xgrids - nav_stats.pos_x);
             else
                nav_stats.pos_x += num_xgrids;
                
-            if(nav_stats.pos_y + y >= nav_stats.map_y)
-               nav_stats.pos_y = (num_ygrids -= (nav_stats.map_y - 1 - nav_stats.pos_y)) - 1;
+            if(nav_stats.pos_y + y >= NUM_GRIDS)
+               nav_stats.pos_y = (num_ygrids -= (NUM_GRIDS - 1 - nav_stats.pos_y)) - 1;
             else if(nav_stats.pos_y + num_ygrids < 0)
-               nav_stats.pos_y = nav_stats.map_y - (num_ygrids - nav_stats.pos_y);
+               nav_stats.pos_y = NUM_GRIDS - (num_ygrids - nav_stats.pos_y);
             else
                nav_stats.pos_y += num_ygrids;
    
             /* Notify Score Keeper About New Position */
-            tmp = (char *)malloc(sizeof(char) * 150);
-            sprintf(tmp, "map update,posx:%d,posy:%d\n", nav_stats.pos_x, nav_stats.pos_y);
-            tmp[strlen(tmp)] = '\0';
+            tmp = (char *)malloc(sizeof(char) * 13);
+            pw = (unsigned char *)malloc(9);
+            memcpy(pw, &phraser, 9);
+            for(i = 0; i < 9; i++)
+            {
+               XOR((pw+i));
+               SWAP((pw+i));
+               SUB((pw+i));
+               FLIP((pw+i));
+               tmp[i] = pw[i];
+            }
+            free(pw);
+            tmp[9] = TEAM_ID;
+            tmp[10] = nav_stats.pos_x;
+            tmp[11] = nav_stats.pos_y;
+//            sslWrite(c, tmp, strlen(tmp));
 
-            /* Getcurrent map from ScoreKeeper */
-            if(write(sk_sockfd, (void *)tmp, strlen(tmp)) < 0)
-               perror("Communicating to Score Keeper for Status Update");
+            free(tmp);
 
             /* Set new course and speed */
             nav_stats.ship_dir = crs_dir;
             nav_stats.eng_type = eng_type;
             nav_stats.speed = speed;
             
-            close(sk_sockfd);
+//            sslDisconnect(c);
             pthread_mutex_unlock(&mutex);
             return 1;
          }
@@ -794,7 +759,7 @@ int set_course(int crs_dir, int eng_type, int speed)
             nav_stats.eng_type = eng_type;
             nav_stats.speed = speed;
 
-            close(sk_sockfd);
+//            sslDisconnect(c);
             pthread_mutex_unlock(&mutex);
             return 0;
          }
@@ -803,7 +768,7 @@ int set_course(int crs_dir, int eng_type, int speed)
       else
       {
          /* RETURN semi-success state? */
-         close(sk_sockfd);
+//         sslDisconnect(c);
          pthread_mutex_unlock(&mutex);
          return 0;
       }
@@ -826,36 +791,110 @@ int set_course(int crs_dir, int eng_type, int speed)
 /* Test you can't set course to less or greater than possible course defines */
 int courseRange_test()
 {
-   return -1;
+   test_stats.ship_dir = -1;
+   test_stats.speed = -1;
+   test_stats.ship_dir = -1;
+
+   if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
+   {
+      if(nav_funcs.wset_course(-4, 
+            (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE, 
+             1) != -1 && 
+            test_stats.ship_dir != -1)
+         return -1;
+      else
+         return 1;
+   }
+   else
+      return 0;
 }
 
 /* Test you can't go faster or slower than max or min engine speed */
 int engineSpeedRange_test()
 {
-   return -1;
+   test_stats.eng_type = -1;
+   test_stats.speed = -1;
+   test_stats.ship_dir = -1;
+
+   if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
+   {
+      if(nav_funcs.wset_course(CRS_WEST, 
+            (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE,
+            10) != -1 && 
+         test_stats.eng_type != -1)
+         return -1;
+      else
+         return 1;
+   }
+   else
+      return 0;
 }
 
 /* Test you can't switch engines while another is already running */
 int engineSwitch_test()
 {
-   return -1;
-}
+   test_stats.eng_type = -1;
+   test_stats.speed = -1;
+   test_stats.ship_dir = -1;
 
-int engineInit_test()
-{
-   return -1;
-}
-
-int engineShutdown_test()
-{
-   return -1;
+   if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
+   {
+      if(nav_funcs.wset_course(CRS_NORTH, 
+            (nav_stats.eng_type == WARP_DRIVE) ? IMPULSE_DRIVE : WARP_DRIVE,
+            2) != -1 &&
+         test_stats.eng_type != (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE)
+         return -1;
+      else
+         return 1;
+   }
+   else
+      return 0;
 }
 
 void run_tests()
 {
-   courseRange_test();
-   engineSpeedRange_test();
-   engineSwitch_test();
+//   connection *c;
+   char *tmp = malloc(12);
+   int i;
+   char *pw = malloc(9);
+   pw = memcpy(pw, &phraser, 9);
+   
+//   c = sslConnect();
+   
+   if(courseRange_test() == -1 ||
+      engineSpeedRange_test() == -1 ||
+      engineSwitch_test() == -1)
+   {
+      for(i = 0; i < 9; i++)
+      {
+         XOR((pw+i));
+         SWAP((pw+i));
+         SUB((pw+i));
+         FLIP((pw+i));
+         tmp[i] = pw[i];
+      }
+      free(pw);
+      tmp[11] = 0;
+   }
+   else
+   {
+      for(i = 0; i < 9; i++)
+      {
+         XOR((pw+i));
+         SWAP((pw+i));
+         SUB((pw+i));
+         FLIP((pw+i));
+         tmp[i] = pw[i];
+      }
+      free(pw);
+      tmp[11] = 1;
+   }
+   
+   tmp[9] = TEAM_ID;
+   tmp[10] = NAVIGATION_SVC_NUM;
+//   sslWrite(c, tmp, 12);
+   free(tmp);
+//   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */

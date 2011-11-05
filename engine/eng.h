@@ -33,6 +33,30 @@
 int logfd;
 
 /* 
+   You may find the following useful for your implementation. These values will
+      be used in the provided object file. Should your engines become too 
+      saturated with Radiation, they will shutdown until safe levels return.
+  
+   Radiation Generated for impulse speeds starting at 1/4:
+      1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000
+
+   Radiation Generated for warp speeds starting at warp 1:
+      8.0000, 11.4454, 13.4608, 14.8908, 16.0000, 16.6487, 17.7183, 19.4817, 22.3891
+      
+   The radiation saturation will dissipate at a rate of 16 units per minute.
+   
+   For every minute your engines are saturated with radiation, your engines will be
+      damaged 1 unit per 1 unit of radiation. Your engines can only sustain 35 units
+      of damage before they shut down. Scotty can only repair 5 units of damage every
+      15 minutes. While your ship's engines are damaged above the max allowed, your
+      service will be considered down and you will not be able to engange your engines.
+      
+   Faster speeds require more power.
+      Power Usages for Speeds where 1st is for all Impulse Speeds
+         4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+*/
+
+/* 
    This structure contains functions pointers to all necessary functions to
       implement the power system. 
    

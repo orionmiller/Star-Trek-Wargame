@@ -9,6 +9,7 @@
 #define NAVIGATION_SVC_NUM 4
 #define SHIELDS_SVC_NUM 5
 #define ENGINES_SVC_NUM 6
+#define WEAPONS_SVC_NUM 7
 
 /* Power Service Request Types */
 /* Request De/Allocation of Reserve Power */
