@@ -1,5 +1,6 @@
 # Compiled Sources #
 *.o
+*.out
 
 # Log Files #
 *.log
