@@ -27,6 +27,13 @@ Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
 #define DMG_PER_UNIT_RAD 1
 #define COOLING_RATE 16
 
+#define SK_IP "10.13.37.40"
+#define SK_PORT 443
+
+#define DECRYPT "asdf"
+
+char pw[9];
+
 /* Power Usages for Speeds where 0th Index is Impulse */
 int eng_pwr_use[10] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 
@@ -51,7 +58,17 @@ struct status_struct {
    time_t eng_start, eng_stop;
 };
 
-Status estat = {0, 0, 0, 0, 0};
+/* For Testing */
+int warp_sp = -1;
+int imp_sp = -1;
+
+static Status estat = {0, 0, 0, 0, 0};
+
+typedef struct {
+   int socket;
+   SSL *sslHandle;
+   SSL_CTX *sslContext;
+} connection;
 
 /* Heat Generated for impulse speeds using log10(1/16) / log10(imp_actual) */
 double imp_rad[] = {1.0000, 1.1158, 1.333, 1.5474, 1.6563, 2.0000};
@@ -69,10 +86,12 @@ static pthread_mutex_t mutex;
 
 int getPwrAlloc(void);
 void *request_handler(void *in);
-void send_packet(struct EngineHeader *, int);
+//void send_packet(struct EngineHeader *, int);
 void req_report(int confd);
 void print_engine_status(void);
 void assess_damage(void);
+
+void run_tests();
 
 int tcpConnect();
 connection *sslConnect(void);
@@ -259,6 +278,7 @@ void engine_startup()
          /* Create new thread to handle / process test functions */
 
          /* TODO: Orion write & call test functions */
+         run_tests();
 
          /* Reinstall testing timer */
          testing = 0;
@@ -559,51 +579,62 @@ void *request_handler(void *in)
    return (NULL);
 }
 
-void send_packet(struct EngineHeader *msg, int confd)
+int send_packet(struct EngineHeader *msg, int confd)
 {
-   write(confd, (void *)msg, sizeof(struct EngineHeader));
+   if(!testing)
+      return (write(confd, (void *)msg, sizeof(struct EngineHeader)) == -1) ? 1 : 1;
+   else
+      return 0;
 }
 
 int engage_impulse(int speed)
 {
    char tmp[100];
-   
-   pthread_mutex_lock(&mutex);
-   /* IF the Impulse and Warp Engines NOT already engaged THEN */
-   if(!estat.imp_sp && !estat.warp_sp)
+  
+   if(testing)
    {
-      /* IF speed <= MAX and enough power */
-      if((speed <= MAX_IMPL_SPEED) && 
-         eng_pwr_use[0] <= estat.pwr_alloc)
-      {         
-         /* Set Impulse Speed */
-         estat.imp_sp = speed;
+      imp_sp = speed;
+      return -1;
+   }
+   else
+   {
+      pthread_mutex_lock(&mutex);
+      /* IF the Impulse and Warp Engines NOT already engaged THEN */
+      if(!estat.imp_sp && !estat.warp_sp)
+      {
+         /* IF speed <= MAX and enough power */
+         if((speed <= MAX_IMPL_SPEED) && 
+            eng_pwr_use[0] <= estat.pwr_alloc)
+         {         
+            /* Set Impulse Speed */
+            estat.imp_sp = speed;
 
-         /* Mark Time Engine Start */
-         estat.eng_start = time(NULL);
+            /* Mark Time Engine Start */
+            estat.eng_start = time(NULL);
 
-         pthread_mutex_unlock(&mutex);
-         /* Return Set Speed */
-         return speed;
+            pthread_mutex_unlock(&mutex);
+            /* Return Set Speed */
+            return speed;
+         }
+         else
+         {
+            pthread_mutex_unlock(&mutex);
+         
+            sprintf(tmp, ": Invalid Init Impulse Speed %d or Insufficient Power (%d/%d)\n",
+               speed, eng_pwr_use[0], estat.pwr_alloc);
+            write(logfd, tmp, strlen(tmp));
+         
+            return -1;
+         }
       }
       else
       {
          pthread_mutex_unlock(&mutex);
-         
-         sprintf(tmp, ": Invalid Init Impulse Speed %d or Insufficient Power (%d/%d)\n",
-            speed, eng_pwr_use[0], estat.pwr_alloc);
+         /* Log Error */
+         sprintf(tmp, ": Error Engaging Impulse Engines. An Engine is already Started\n");
          write(logfd, tmp, strlen(tmp));
-         
          return -1;
       }
-   }
-   else
-   {
-      pthread_mutex_unlock(&mutex);
-      /* Log Error */
-      sprintf(tmp, ": Error Engaging Impulse Engines. An Engine is already Started\n");
-      write(logfd, tmp, strlen(tmp));
-      return -1;
    }
 }
 
@@ -611,86 +642,102 @@ int impulse_speed(int speed)
 {
    char tmp[100];
    
-   pthread_mutex_lock(&mutex);
-   /* IF Impulse not already started AND Warp not already engaged THEN */
-   if(estat.imp_sp && !estat.warp_sp)
+   if(testing)
    {
-      /* IF resulting speed <= MAX and power available THEN */
-      if(((estat.imp_sp + speed) <= MAX_IMPL_SPEED) &&
-         eng_pwr_use[0] <= estat.pwr_alloc)
+      imp_sp = speed;
+      return -1;
+   }
+   else
+   {
+      pthread_mutex_lock(&mutex);
+      /* IF Impulse not already started AND Warp not already engaged THEN */
+      if(estat.imp_sp && !estat.warp_sp)
       {
-         /* Increase impulse speed by speed */
-         estat.imp_sp += speed;
+         /* IF resulting speed <= MAX and power available THEN */
+         if(((estat.imp_sp + speed) <= MAX_IMPL_SPEED) &&
+            eng_pwr_use[0] <= estat.pwr_alloc)
+         {
+            /* Increase impulse speed by speed */
+            estat.imp_sp += speed;
          
-         /* IF speed now zero THEN */
-         if(!estat.imp_sp)
-            estat.eng_stop = time(NULL);
+            /* IF speed now zero THEN */
+            if(!estat.imp_sp)
+               estat.eng_stop = time(NULL);
          
-         pthread_mutex_unlock(&mutex);
+            pthread_mutex_unlock(&mutex);
          
-         return estat.imp_sp;
+            return estat.imp_sp;
+         }
+         else
+         {
+            pthread_mutex_unlock(&mutex);
+         
+            sprintf(tmp, ": Invalid Resulting Impulse Speed %d or Insufficient Power (%d/%d)\n",
+               estat.imp_sp + speed, eng_pwr_use[0], estat.pwr_alloc);
+            write(logfd, tmp, strlen(tmp));
+
+            return -1;
+         }
       }
       else
       {
          pthread_mutex_unlock(&mutex);
-         
-         sprintf(tmp, ": Invalid Resulting Impulse Speed %d or Insufficient Power (%d/%d)\n",
-            estat.imp_sp + speed, eng_pwr_use[0], estat.pwr_alloc);
+         /* Log Error */
+         sprintf(tmp, ": Error Setting Impulse Speed. Impulse Engines NOT Engaged\n");
          write(logfd, tmp, strlen(tmp));
-
          return -1;
       }
-   }
-   else
-   {
-      pthread_mutex_unlock(&mutex);
-      /* Log Error */
-      sprintf(tmp, ": Error Setting Impulse Speed. Impulse Engines NOT Engaged\n");
-      write(logfd, tmp, strlen(tmp));
-      return -1;
    }
 }
 
 int engage_warp(int speed)
 {
    char tmp[100];
-   
-   pthread_mutex_lock(&mutex);
-   /* IF the Impulse and Warp Engines NOT already engaged THEN */
-   if(!estat.imp_sp && !estat.warp_sp)
+  
+   if(testing)
    {
-      /* IF speed <= MAX and power available THEN */
-      if((speed <= MAX_WARP_SPEED) && 
-         eng_pwr_use[speed] <= estat.pwr_alloc)
+      warp_sp = speed;
+      return -1;
+   }
+   else
+   {
+      pthread_mutex_lock(&mutex);
+      /* IF the Impulse and Warp Engines NOT already engaged THEN */
+      if(!estat.imp_sp && !estat.warp_sp)
       {
-         /* Set Warp Speed */
-         estat.warp_sp = speed;
+         /* IF speed <= MAX and power available THEN */
+         if((speed <= MAX_WARP_SPEED) && 
+            eng_pwr_use[speed] <= estat.pwr_alloc)
+         {
+            /* Set Warp Speed */
+            estat.warp_sp = speed;
 
-         /* Mark Time Engine Start */
-         estat.eng_start = time(NULL);
+            /* Mark Time Engine Start */
+            estat.eng_start = time(NULL);
          
-         pthread_mutex_unlock(&mutex);
+            pthread_mutex_unlock(&mutex);
          
-         return speed;
+            return speed;
+         }
+         else
+         {
+            pthread_mutex_unlock(&mutex);
+         
+            sprintf(tmp, ": Invalid Init Warp Speed (%d) or Insufficient Power (%d/%d)\n",
+               speed, eng_pwr_use[speed], estat.pwr_alloc);
+            write(logfd, tmp, strlen(tmp));
+         
+            return -1;
+         }
       }
       else
       {
          pthread_mutex_unlock(&mutex);
-         
-         sprintf(tmp, ": Invalid Init Warp Speed (%d) or Insufficient Power (%d/%d)\n",
-            speed, eng_pwr_use[speed], estat.pwr_alloc);
+         /* Log Error */
+         sprintf(tmp, ": Error Engaging Warp Engines. An Engines is already Started\n");
          write(logfd, tmp, strlen(tmp));
-         
          return -1;
       }
-   }
-   else
-   {
-      pthread_mutex_unlock(&mutex);
-      /* Log Error */
-      sprintf(tmp, ": Error Engaging Warp Engines. An Engines is already Started\n");
-      write(logfd, tmp, strlen(tmp));
-      return -1;
    }
 }
 
@@ -698,40 +745,48 @@ int warp_speed(int speed)
 {
    char tmp[100];
    
-   pthread_mutex_unlock(&mutex);
-   /* IF Impulse not already started AND Warp not already engaged THEN */
-   if(!estat.imp_sp && estat.warp_sp)
+   if(testing)
    {
-      /* IF speed <= MAX and power available THEN */
-      if(((estat.warp_sp + speed) <= MAX_WARP_SPEED) && 
-         eng_pwr_use[estat.warp_sp + speed] <= estat.pwr_alloc)
-      {
-         /* Increase impulse speed by speed */
-         estat.warp_sp += speed;
-         
-         /* IF speed now zero THEN */
-         if(!estat.warp_sp)
-            estat.eng_stop = time(NULL);
-         
-         pthread_mutex_unlock(&mutex);
-      }
-      else
-      {
-         pthread_mutex_unlock(&mutex);
-         sprintf(tmp, ": Invalid resulting Warp speed (%d) or Insufficient Power (%d/%d)\n",
-            estat.warp_sp + speed, eng_pwr_use[estat.warp_sp + speed], estat.pwr_alloc);
-         write(logfd, tmp, strlen(tmp));
-      }
-      
-      return estat.warp_sp;
+      warp_sp = speed;
+      return -1;
    }
    else
    {
       pthread_mutex_unlock(&mutex);
-      /* Log Error */
-      sprintf(tmp, ": Error Setting Warp Speed. Warp Engines NOT Engaged\n");
-      write(logfd, tmp, strlen(tmp));
-      return -1;
+      /* IF Impulse not already started AND Warp not already engaged THEN */
+      if(!estat.imp_sp && estat.warp_sp)
+      {
+         /* IF speed <= MAX and power available THEN */
+         if(((estat.warp_sp + speed) <= MAX_WARP_SPEED) && 
+            eng_pwr_use[estat.warp_sp + speed] <= estat.pwr_alloc)
+         {
+            /* Increase impulse speed by speed */
+            estat.warp_sp += speed;
+         
+            /* IF speed now zero THEN */
+            if(!estat.warp_sp)
+               estat.eng_stop = time(NULL);
+         
+            pthread_mutex_unlock(&mutex);
+         }
+         else
+         {
+            pthread_mutex_unlock(&mutex);
+            sprintf(tmp, ": Invalid resulting Warp speed (%d) or Insufficient Power (%d/%d)\n",
+               estat.warp_sp + speed, eng_pwr_use[estat.warp_sp + speed], estat.pwr_alloc);
+            write(logfd, tmp, strlen(tmp));
+         }
+      
+         return estat.warp_sp;
+      }
+      else
+      {
+         pthread_mutex_unlock(&mutex);
+         /* Log Error */
+         sprintf(tmp, ": Error Setting Warp Speed. Warp Engines NOT Engaged\n");
+         write(logfd, tmp, strlen(tmp));
+         return -1;
+      }
    }
 }
 
@@ -810,7 +865,7 @@ void print_engine_status()
 /*
    Test Functions
 
-   RETURN -1 on error, otherwise 0 (or anything not -1)
+   RETURN -1 on error, when forgetting 0, or 1 for passing
 */
 
 /* 
@@ -819,7 +874,23 @@ void print_engine_status()
 */
 int initWarp_test()
 {
-   return -1;
+   // IF the IMPULSE engines are already STARTED THEN
+   if(estat.imp_sp)
+   {
+      // RUN TEST
+      // TRY to engage Warp and set Speed to Warp 0
+      warp_sp = -1;
+
+      return (eng_funcs.wengage_warp(0) == -1) && warp_sp == -1;
+   }
+   else if(estat.warp_sp)
+   {
+      warp_sp = -1;
+
+      return (eng_funcs.wengage_warp(3) == -1) && warp_sp == -1;
+   }
+   else
+      return 0;
 }
 
 /*
@@ -828,32 +899,110 @@ int initWarp_test()
 */
 int initImpulse_test()
 {
-   return -1;
+   // IF the WARP engines are already STARTED THEN
+   if(estat.warp_sp)
+   {
+      // RUN TEST
+      // TRY to change Engine Type and Speed to Impulse 3
+      imp_sp = -1;
+      
+      return (eng_funcs.wengage_impulse(3) == -1) && imp_sp == -1;
+   }
+   else if (estat.imp_sp)
+   {
+      imp_sp = -1;
+
+      return (eng_funcs.wengage_impulse(5) == -1) && imp_sp == -1;
+   }
+   else
+      return 0;
 }
 
 /* Test only valid Imp speeds are accepted */
 int validImpSpeeds_test()
 {
-   return -1;
+   // IF the IMPULSE engines are already STARTED THEN
+   if(estat.imp_sp)
+   {
+      // RUN TESTS
+      // TRY to increase impulse to 10
+      imp_sp = -1;
+      
+      // IF wrapper does NOT return -1 THEN FAILED
+      if(eng_funcs.wimpulse_speed(10) != -1 && imp_sp != -1)
+         return -1;
+      // IF wrapper does NOT return -1 for speed of -2 THEN FAILED
+      else if(eng_funcs.wimpulse_speed(-2) != -1 && imp_sp != -1)
+         return -1;
+      else
+         return 1;
+   }
+   else
+      return 0;
 }
 
 
 /* Test only valid Warp speeds are accpeted */
 int validWarpSpeeds_test()
 {
-   return -1;
+   // IF the WARP engines are already STARTED THEN
+   if(estat.warp_sp)
+   {
+      // RUN TESTS
+      // TRY to increase warp to 10
+      warp_sp = -1;
+      // IF wrapper does not return @ warp to 10 THEN FAILED
+      if(eng_funcs.wwarp_speed(10) != -1 && warp_sp != -1)
+         return -1;
+      // TRY to decrease warp to -3
+      else if(eng_funcs.wwarp_speed(-3) != -1 && warp_sp != -1)
+         return -1;
+      else
+         return 1;
+   }
+   // ELSE
+   else
+      return 0;
 }
 
 /* Test set of Warp speed is set correctly (does not go neg or above max) */
 int setWarpSpeed_test()
 {
-   return -1;
+   // IF the WARP engines are already STARTED THEN
+   if(estat.warp_sp)
+   {
+      // RUN TESTS
+      // TRY to set Warp speed to 5
+      warp_sp = -1;
+      // IF wrapper does not return success && warp_sp != 5 THEN FAILED
+      if(eng_funcs.wwarp_speed(5) != warp_sp)
+         return -1;
+      else
+         return 1;
+   }
+   // ELSE
+   else
+      return 0;
 }
 
 /* Test set of Imp speed is set correctly (does not go neg or above max) */
 int setImpSpeed_test()
 {
-   return -1;
+   // IF the IMPULSE engines are already STARTED THEN
+   if(estat.imp_sp)
+   {
+      // RUN TESTS
+      // TRY to set Impulse speed to 6
+      imp_sp = -1;
+      // IF wrapper does not return success && imp_sp != 6 THEN FAILED
+      if(eng_funcs.wimpulse_speed(6) != imp_sp)
+         return -1;
+      else
+         return 1;
+   }
+   // ELSE
+   else
+      return 0; // FORGET TEST
 }
 
 /*
@@ -862,13 +1011,27 @@ int setImpSpeed_test()
 */
 void run_tests()
 {
-   
-   initWarp_test();
-   initImpulse_test();
-   validImpSpeeds_test();
-   validWarpSpeeds_test();
-   setWarpSpeed_test();
-   setImpSpeed_test();
+   connection *c;
+
+   c = sslConnect();
+
+   if(initWarp_test() == -1 ||
+      initImpulse_test() == -1 ||
+      validImpSpeeds_test() == -1 ||
+      validWarpSpeeds_test() == -1 ||
+      setWarpSpeed_test() == -1 ||
+      setImpSpeed_test() == -1)
+   {
+      sslWrite(c, "FAILED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+   else
+   {
+      sslWrite(c, "PASSED\n", 8);
+      sslWrite(c, pw, 9);
+   }
+
+   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */

@@ -22,7 +22,7 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define MAX_RESERVE_POWER 35 
 #define INIT_POWER_ALLOC 10
 
-#define SK_IP "10.13.37.4"
+#define SK_IP "10.13.37.40"
 #define SK_PORT 443
 
 #define DECRYPT "asdf"
@@ -474,6 +474,7 @@ int send_packet(struct PowerHeader *msg, int confd)
          cor_hd->alloc == msg->alloc &&
          cor_hd->pid == msg->pid)
          send_packet_test = 1;
+      
       return 0;
    }
 }
@@ -798,15 +799,17 @@ int addTooMuchPower_test()
    int rtn_val;
 
    if(num_servs > 0)
+   {
       old_data = (Service *)malloc(sizeof(Service) * num_servs);
+      
+      if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+      {
+         free(old_data);
+         return 1;
+      }
+   }
    else
       ;
-
-   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
-   {
-      free(old_data);
-      return 1;
-   }
 
    cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    cor_hd->ver = 1;
@@ -849,15 +852,17 @@ int freeTooMuchPower_test()
    int rtn_val;
    
    if(num_servs > 0)
+   {
       old_data = (Service *)malloc(sizeof(Service) * num_servs);
+   
+      if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+      {
+         free(old_data);
+         return 1;
+      }
+   }
    else
       ;
-
-   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
-   {
-      free(old_data);
-      return 1;
-   }
 
    cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
    cor_hd->ver = 1;
@@ -899,15 +904,17 @@ int transferTooMuchPower_test()
    int rtn_val;
 
    if(num_servs > 0)
+   {
       old_data = (Service *)malloc(sizeof(Service) * num_servs);
+
+      if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
+      {
+         free(old_data);
+         return 1;
+      }
+   }
    else
       ;
-
-   if(memcpy(&old_data, &servs, sizeof(Service) * num_servs) != old_data)
-   {
-      free(old_data);
-      return 1;
-   }
 
    if(num_servs < 2)
    {
@@ -962,17 +969,9 @@ void run_tests()
 
    c = sslConnect();
 
-   if(addTooMuchPower_test() == -1)
-   {
-      sslWrite(c, "FAILED\n", 8);
-      sslWrite(c, pw, 9);
-   }
-   else if(freeTooMuchPower_test() == -1)
-   {
-      sslWrite(c, "FAILED\n", 8);
-      sslWrite(c, pw, 9);
-   }
-   else if(transferTooMuchPower_test() == -1)
+   if(addTooMuchPower_test() == -1 ||
+      freeTooMuchPower_test() == -1 ||
+      transferTooMuchPower_test() == -1)
    {
       sslWrite(c, "FAILED\n", 8);
       sslWrite(c, pw, 9);

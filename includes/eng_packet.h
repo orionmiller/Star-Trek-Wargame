@@ -91,6 +91,6 @@ struct EngineHeader {
    uint8_t len;         /* The length of the packet (in bytes) incase you add to it */
    uint8_t eng_type_req; /* The Type of Engine and the Type of Request */
    uint8_t amt;         /* The amount requested or reported (ususlly speed) */
-   uint8_t dmg;         /* Damage Inflicted on Engine Core */
-   uint8_t rad;         /* Current Level of Radiation in Engine Core */
+   uint8_t dmg;         /* Damage Inflicted on Engine Core (For Reporting) */
+   uint8_t rad;         /* Current Level of Radiation in Engine Core (For Reporting) */
 };
