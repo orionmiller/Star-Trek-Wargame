@@ -30,7 +30,7 @@ ACTION={
     'null':(0,0),
     'engage':(1,0),
     'game_over':(2,0),
-    'service_down':(3,10),
+    'service_down':(3,1),
     'weapon_dmg':(4,1),
     'lvl_complete':(5,15)}
 
@@ -75,7 +75,6 @@ class DataBase:
         print 'fixing database'
         while len(DB_KEYS_FIX) > 1: #magic number
             curr_key = DB_KEYS_FIX.pop()
-            #self.r_server.remove(curr_key[KEY])
             if curr_key[INIT_VALUE] is not None:
                 self.r_server.set(curr_key[KEY], curr_key[INIT_VALUE])
 
@@ -93,15 +92,13 @@ class DataBase:
             self.r_server.rpush(self.Game.key, self.Game.time_start)
             self.r_server.rpush(self.Game.key, self.Game.time_end)
             self.r_server.lpush('games', self.Game.key)
-            
-            self.r_server.incr('team_id')
-            self.Game.TeamA.id = self.r_server.get('team_id')
+
+            self.Game.TeamA.id='a'
             self.Game.TeamA.key = 'team:' + str(self.Game.TeamA.id) + '-' + self.Game.key
             self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamA.name)
             self.r_server.rpush(self.Game.TeamA.key, self.Game.TeamA.score)
         
-            self.r_server.incr('team_id')
-            self.Game.TeamB.id = self.r_server.get('team_id')
+            self.Game.TeamB.id='b'
             self.Game.TeamB.key = 'team:' + str(self.Game.TeamB.id) + '-' + self.Game.key
             self.r_server.rpush(self.Game.TeamB.key, self.Game.TeamB.name)
             self.r_server.rpush(self.Game.TeamB.key, self.Game.TeamB.score)
@@ -129,7 +126,7 @@ class DataBase:
         self.Log.write(msg='key:\''+key+'\' does not exist in the database.')
         return False
             
-    def new_action(self, team_info=None, action=ACTION['null']):
+    def new_action(self, team_info=None, team_getting_points=None, action=ACTION['null']):
         if team_info is not None:
             self.r_server.incr('action_id')
             action_id = self.r_server.get('action_id')
@@ -138,7 +135,6 @@ class DataBase:
             self.r_server.rpush(action_key, action[TYPE])
             self.r_server.rpush(action_key, team_info.id)
             self.r_server.lpush('actions', action_key)
-            self.set_score(team_info.key,action[1]) #magic number
         else:
             self.Log.write(msg='Bad call of new_action with no team info.')
 
@@ -189,4 +185,4 @@ class DataBase:
     def get_time_start(self):
         time_start = self.r_server.lrange(self.Game.key, TIME_START_OFF, TIME_START_OFF)
         return float(time_start[0])
-
+        

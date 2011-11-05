@@ -11,6 +11,7 @@ import socket
 import sys
 #import os
 import threading
+import ssl
 
 from struct import *
 from passphrase import *
@@ -20,17 +21,21 @@ import team
 import st_map
 import weapons
 
+import database
 
-HOST='127.0.0.1'
+
+HOST= '10.13.37.15'#'127.0.0.1'
 MAX_BUFF_SIZE = 1024
 
 TEAM_A_NUM = 0
-TEAM_A_ADDR = '127.0.0.1' #'10.13.37.55'
-TEAM_A_PORT = 33997 #25668
+TEAM_A_ADDR = '10.13.37.55'
+TEAM_A_PORT = 33997
 
 TEAM_B_NUM = 1
-TEAM_B_ADDR = '127.0.0.1' #'10.13.37.56'
+TEAM_B_ADDR = '10.13.37.56'
 TEAM_B_PORT = 22456
+
+#TEAM_C_PORT = 22444
 
 LOCAL_PORT = 37791
 
@@ -64,10 +69,17 @@ semaphore = threading.Semaphore()
 
 DMG_REPORT_INTERV = 60
 
+TEAM_A_POS_KEY = 'team:a-pos'
+TEAM_B_POS_KEY = 'team:b-pos'
+
 teamA = team.Team()
 teamB = team.Team()
 Map = st_map.Map()
 Weapons = weapons.Weapons(Map)
+DB = database.DataBase()
+DB.connect()
+DB.init_pos(TEAM_A_POS_KEY)
+DB.init_pos(TEAM_B_POS_KEY)
 
 def main():
     teamA_thread = threading.Thread(target=thread_server,
@@ -76,6 +88,7 @@ def main():
                      args=(teamB, TEAM_B_ADDR, TEAM_B_PORT, req_handler,))
     teamA_thread.start()
     teamB_thread.start()
+
     teamA_thread.join()
     teamB_thread.join()
 
@@ -83,6 +96,11 @@ def main():
 def move(Team, pos_x, pos_y):
     semaphore.acquire()
     Team.move(pos_x, pos_y)
+    if Team is teamA:
+        DB.set_pos(TEAM_A_POS_KEY, pos_x, pos_y)
+    elif Team is teamB:
+        DB.set_pos(TEAM_B_POS_KEY, pos_x, pos_y)
+
     semaphore.release()
 
 def shield_state(Team, srvc_num, up_or_down):
@@ -99,9 +117,9 @@ def dmg(From, To, srvc_num):
     semaphore.acquire()
     if not To.is_shield_up(srvc_num) and Weapons.in_range(From, To):
         if To is teamA and From is teamB:
-            send_dmg('123456789', TEAM_A_NUM)
+            send_dmg(get_pass(LOCAL_PASS), TEAM_A_NUM) #2 is the value local check passphrase.py
         elif To is teamB and From is teamA:
-            send_dmg('123456789', TEAM_B_NUM)
+            send_dmg(get_pass(LOCAL_PASS), TEAM_B_NUM) #2 is value of local check passphrase.py
     semaphore.release()
 
 
@@ -179,10 +197,16 @@ def thread_server(Team=None, expected_addr='',port=0, req_handler=None):
             print 'Connected by', addr
     
         if expected_addr == addr[0]:
-            data = conn.recv(MAX_BUFF_SIZE)
+            print 'Going to Socket Wrap'
+            ssl_stream = ssl.wrap_socket(conn, server_side=True, certfile="/home/commander/includes/server.crt", keyfile="/home/commander/includes/server.key", ssl_version=ssl.PROTOCOL_TLSv1)
+            print 'Socket Wrapped'
+            data = ssl_stream.read()
             print 'addr: '+str(addr)+' data: '+str(data)
+            ssl_stream.shutdown(socket.SHUT_RDWR)
+            ssl_stream.close()
             conn.close()
-            req_handler(Team, data)
+            if req_handler is not None:
+                req_handler(Team, data)
         else:
             print 'recvd addr: \''+addr[0]+'\' expected addr: \''+expected_addr+'\''
             conn.close()
