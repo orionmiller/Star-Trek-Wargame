@@ -18,7 +18,7 @@ Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
 #include "nav.h"
 #include <time.h>
 
-#define SK_IP "10.13.37.40"
+#define SK_IP "10.13.37.15"
 #define SK_PORT 443
 #define TEAM_A_SK_PORT 25668
 #define TEAM_B_SK_PORT 22456
@@ -135,9 +135,10 @@ void navigation_startup()
 
    /* Stuff for Socketing */
    struct sockaddr_in sck;
+   struct sockaddr_in cmdsck;
    struct sockaddr_storage stg;
    socklen_t len;
-   int tcpfd;
+   int tcpfd, cmdfd;
 
    /* For breaking from Accept to start testing */
    struct itimerval testtv, resttv;
@@ -191,11 +192,12 @@ void navigation_startup()
    
    /* Setup and Bind STATIC_PORT */
    bzero(&sck, sizeof(sck));
+   bzero(&cmdsck, sizeof(cmdsck));
    
    /* Set the Address IP_ADDRESS */
    if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
    {
-      sck.sin_port = STATIC_NAV_PORT;
+      sck.sin_port = htons(STATIC_NAV_PORT);
       sck.sin_family = AF_INET;
    }
    else
@@ -221,7 +223,7 @@ void navigation_startup()
    /* Get the Service port assigned by kernal */
    len = sizeof(sck);
    getsockname(sockfd, (struct sockaddr *)&sck, &len);
-   sck.sin_port = htons(sck.sin_port);
+//   sck.sin_port = htons(sck.sin_port);
    httpPt = sck.sin_port;
 
    /* Start Listening on Port */
@@ -252,12 +254,33 @@ void navigation_startup()
    /* IF the command_line_interface IS setup THEN */
    if(nav_funcs.cmd_line_inter)
    {
-      /* Spawn a new thread and call the function */
-      if(pthread_create(&tid, 
-                        NULL, 
-                        nav_funcs.cmd_line_inter, 
-                        NULL) != 0)
-         perror("Error Creating new Thread for Command Line Interface");
+      /* Set the Address IP_ADDRESS */
+      if(inet_pton(AF_INET, IP_ADDRESS, &(cmdsck.sin_addr)) > 0)
+      {
+         cmdsck.sin_port = htons(NAV_CLI_PORT);
+         cmdsck.sin_family = AF_INET;
+  
+         /* Get Socket FD from Kernel */
+         if((cmdfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+            perror("Socket Error");
+         else
+         {
+            /* Bind Socket */
+            if(bind(cmdfd, (struct sockaddr *)&cmdsck, sizeof(cmdsck)) != 0)
+               perror("Socket Binding Error");
+            else
+            {
+               /* Spawn a new thread and call the function */
+               if(pthread_create(&tid, 
+                                 NULL, 
+                                 nav_funcs.cmd_line_inter, 
+                                 (void *)cmdfd) != 0)
+                  perror("Error Creating new Thread for Command Line Interface");
+            }
+         }
+      }
+      else
+         perror("Bad IP Address");
    }
 
    /* Infinite loop for prompt? */
@@ -327,7 +350,7 @@ void navigation_shutdown()
    pwr_sck.sin_family = AF_INET;
 
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
-      pwr_sck.sin_port = (STATIC_PWR_PORT);
+      pwr_sck.sin_port = htons(STATIC_PWR_PORT);
    else
    {
       perror("Bad IP Address");
@@ -391,7 +414,7 @@ int getPwrAlloc()
    pwr_sck.sin_family = AF_INET;
 
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
-      pwr_sck.sin_port = (STATIC_PWR_PORT);
+      pwr_sck.sin_port = htons(STATIC_PWR_PORT);
    else
    {
       perror("Bad IP Address");
@@ -537,7 +560,7 @@ void *request_handler(void *in)
       eng_sck.sin_family = AF_INET;
 
       if(inet_pton(AF_INET, IP_ADDRESS, &(eng_sck.sin_addr)) > 0)
-         eng_sck.sin_port = (STATIC_ENG_PORT);
+         eng_sck.sin_port = htons(STATIC_ENG_PORT);
       else
       {
          perror("Bad IP Address");
@@ -625,7 +648,7 @@ int set_course(int crs_dir, int eng_type, int speed)
    int t_min;
    int x, y, i;
    char *tmp;
-//   connection *c;
+   connection *c;
    unsigned char *pw;
 
    if(testing)
@@ -651,7 +674,13 @@ int set_course(int crs_dir, int eng_type, int speed)
       speed_check(eng_type, speed))
    {
       /* Get connection to Score Keeper */
-//      c = sslConnect();
+      c = sslConnect();
+
+      if(c->sslHandle == NULL)
+      {
+         free(c);
+         c = NULL;
+      }
 
       /* IF the speed || direction has changed, then update x and y positions */
       if(nav_stats.speed != speed || nav_stats.ship_dir != crs_dir)
@@ -720,33 +749,36 @@ int set_course(int crs_dir, int eng_type, int speed)
                nav_stats.pos_y = NUM_GRIDS - (num_ygrids - nav_stats.pos_y);
             else
                nav_stats.pos_y += num_ygrids;
-   
-            /* Notify Score Keeper About New Position */
-            tmp = (char *)malloc(sizeof(char) * 13);
-            pw = (unsigned char *)malloc(9);
-            memcpy(pw, &phraser, 9);
-            for(i = 0; i < 9; i++)
-            {
-               XOR((pw+i));
-               SWAP((pw+i));
-               SUB((pw+i));
-               FLIP((pw+i));
-               tmp[i] = pw[i];
-            }
-            free(pw);
-            tmp[9] = TEAM_ID;
-            tmp[10] = nav_stats.pos_x;
-            tmp[11] = nav_stats.pos_y;
-//            sslWrite(c, tmp, strlen(tmp));
 
-            free(tmp);
+            if(c)
+            {
+               /* Notify Score Keeper About New Position */
+               tmp = (char *)malloc(sizeof(char) * 13);
+               pw = (unsigned char *)malloc(9);
+               memcpy(pw, &phraser, 9);
+               for(i = 0; i < 9; i++)
+               {
+                  XOR((pw+i));
+                  SWAP((pw+i));
+                  SUB((pw+i));
+                  FLIP((pw+i));
+                  tmp[i] = pw[i];
+               }
+               free(pw);
+               tmp[9] = TEAM_ID;
+               tmp[10] = nav_stats.pos_x;
+               tmp[11] = nav_stats.pos_y;
+               sslWrite(c, tmp, strlen(tmp));
+
+               free(tmp);
+               sslDisconnect(c);
+            }
 
             /* Set new course and speed */
             nav_stats.ship_dir = crs_dir;
             nav_stats.eng_type = eng_type;
             nav_stats.speed = speed;
             
-//            sslDisconnect(c);
             pthread_mutex_unlock(&mutex);
             return 1;
          }

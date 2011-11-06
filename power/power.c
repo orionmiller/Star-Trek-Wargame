@@ -22,7 +22,7 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define MAX_RESERVE_POWER 35 
 #define INIT_POWER_ALLOC 10
 
-#define SK_IP "10.13.37.40"
+#define SK_IP "10.13.37.15"
 #define SK_PORT 443
 
 /* 
@@ -123,8 +123,10 @@ void power_startup()
    /* Stuff for Socketing */
    struct sockaddr_in sck;
    struct sockaddr_storage stg;
+   struct sockaddr_in cmdsck;
+
    socklen_t len;
-   int tcpfd;
+   int tcpfd, cmdfd;
 
    /* For Breaking from Accept to run Power Unit Tests */
    struct itimerval test_tm, test_rest;
@@ -137,7 +139,9 @@ void power_startup()
    httpPt = 0;
 
    /* Setup Log File */
-   if ((logfd = open(LOG_FILE_LOCATION, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
+   if ((logfd = open(LOG_FILE_LOCATION, 
+                     O_WRONLY | O_CREAT | O_APPEND, 
+                     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) < 0)
    {
       perror("Problem Opening Log File");
       logfd = STDIN_FILENO;
@@ -166,11 +170,12 @@ void power_startup()
 
    /* Setup and Bind STATIC_PWR_PORT */
    bzero(&sck, sizeof(sck));
-   
+   bzero(&cmdsck, sizeof(sck));
+
    /* Set the Address IP_ADDRESS */
    if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
    {
-      sck.sin_port = STATIC_PWR_PORT;
+      sck.sin_port = htons(STATIC_PWR_PORT);
       sck.sin_family = AF_INET;
    }
    else
@@ -218,18 +223,42 @@ void power_startup()
    /* Set up timers */
    test_tm.it_interval.tv_sec = test_tm.it_interval.tv_usec = 0;
    test_rest.it_interval.tv_sec = test_rest.it_interval.tv_usec = 0;
-   test_tm.it_value.tv_sec = 5;
+   test_tm.it_value.tv_sec = 60;
    test_tm.it_value.tv_usec = 0;
    test_rest.it_value.tv_sec = test_rest.it_value.tv_usec = 0;
 
    /* IF the command line interface IS setup THEN */
    if(pow_funcs.cmd_line_inter)
    {
-      if(pthread_create(&tid,
-                        NULL,
-                        pow_funcs.cmd_line_inter,
-                        NULL) != 0)
-         perror("Error Creating new Thread for Command Line Interface");
+      /* Setup and Bind STATIC_PWR_PORT */
+      bzero(&cmdsck, sizeof(cmdsck));
+   
+      /* Set the Address IP_ADDRESS */
+      if(inet_pton(AF_INET, IP_ADDRESS, &(cmdsck.sin_addr)) > 0)
+      {
+         cmdsck.sin_port = htons(PWR_CLI_PORT);
+         cmdsck.sin_family = AF_INET;
+         
+         /* Get Socket FD from Kernel */
+         if((cmdfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+            perror("Socket Error");
+         else
+         {
+            /* Bind Socket */
+            if(bind(cmdfd, (struct sockaddr *)&cmdsck, sizeof(cmdsck)) != 0)
+               perror("Socket Binding Error");
+            else
+            {
+               if(pthread_create(&tid,
+                                 NULL,
+                                 pow_funcs.cmd_line_inter,
+                                 (void *)&cmdfd) != 0)
+                  perror("Error Creating new Thread for Command Line Interface");
+            }
+         }
+      }
+      else
+         perror("Bad IP Address");
    }
 
    /* Install timer */
@@ -1050,7 +1079,7 @@ int transferTooMuchPower_test()
 */
 void run_tests()
 {
-//   connection *c;
+   connection *c;
    char *tmp = malloc(12 + 1);
    int i;
    unsigned char *pw = malloc(9);
@@ -1058,7 +1087,18 @@ void run_tests()
    
    bzero(tmp, 12 + 1);
 
-//   c = sslConnect();
+   c = sslConnect();
+
+   if(c->sslHandle == NULL)
+   {
+      free(c);
+      free(pw);
+      free(tmp);
+      return;
+   }
+
+   fprintf(stderr, "here\n");
+
    if(addTooMuchPower_test() == -1 ||
          freeTooMuchPower_test() == -1 ||
          transferTooMuchPower_test() == -1)
@@ -1091,9 +1131,9 @@ void run_tests()
    tmp[9] = TEAM_ID;
    tmp[10] = POWER_SVC_NUM;
 
-//   sslWrite(c, tmp, 12);
+   sslWrite(c, tmp, 12);
    free(tmp);  
-//   sslDisconnect(c);
+   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */

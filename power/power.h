@@ -27,6 +27,7 @@
 #define LOG_FILE_LOCATION "../logs/power.log"
 #define LOG_FILE_PERMS 0666
 #define IP_ADDRESS "127.0.0.1"
+#define PWR_CLI_PORT 2011
 
 /* The file descriptor for writing to the Log file */
 int logfd;
@@ -39,6 +40,10 @@ int logfd;
       - The service does nothing with any other signal. Feel free to use
          then if your implementation requires.
       - For the definition of a Power Packet, see "pwr_packet.h"
+      - The maximum availble power for your ship is 75 units
+      - The default behavoir for registering a new service with the given
+         request_handler is to allocate up to 10 units of power from the
+         remaining balance.
 */
 
 /* 

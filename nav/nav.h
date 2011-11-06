@@ -29,6 +29,7 @@
 #define LOG_FILE_LOCATION "../logs/navigation.log"
 #define LOG_FILE_PERMS 0666
 #define IP_ADDRESS "127.0.0.1"
+#define NAV_CLI_PORT 2001
 
 #define PASABLE_OBJ 1
 #define IMPASSABLE_OBJ 2

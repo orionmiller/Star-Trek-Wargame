@@ -141,8 +141,9 @@ void engine_startup()
    /* Stuff for Socketing */
    struct sockaddr_in sck;
    struct sockaddr_storage stg;
+   struct sockaddr_in cmdsck;
    socklen_t len;
-   int tcpfd;
+   int tcpfd, cmdfd;
 
    /* For breaking from Accept to start testing */
    struct itimerval testtv, resttv;
@@ -193,11 +194,12 @@ void engine_startup()
 
    /* Setup and Bind STATIC_ENG_PORT */
    bzero(&sck, sizeof(sck));
+   bzero(&cmdsck, sizeof(cmdsck));
 
    /* Set the Address IP_ADDRESS */
    if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
    {
-      sck.sin_port = STATIC_ENG_PORT;
+      sck.sin_port = htons(STATIC_ENG_PORT);
       sck.sin_family = AF_INET;
    }
    else
@@ -223,7 +225,6 @@ void engine_startup()
    /* Get the Service port assigned by kernal */
    len = sizeof(sck);
    getsockname(sockfd, (struct sockaddr *)&sck, &len);
-   sck.sin_port = htons(sck.sin_port);
    httpPt = sck.sin_port;
 
    /* Start Listening on Port */
@@ -254,12 +255,31 @@ void engine_startup()
    /* IF the command line interface IS set THEN */
    if(eng_funcs.cmd_line_inter)
    {
-      /* Spawn and new thread and call the function */
-      if(pthread_create(&tid,
-                        NULL,
-                        eng_funcs.cmd_line_inter,
-                        NULL) != 0)
-         perror("Error Creating new Thread for Command Line Interface");
+      /* Set the Address IP_ADDRESS */
+      if(inet_pton(AF_INET, IP_ADDRESS, &(sck.sin_addr)) > 0)
+      {
+         cmdsck.sin_port = htons(ENG_CLI_PORT);
+         cmdsck.sin_family = AF_INET;
+         
+         /* Get Socket FD from Kernel */
+         if((cmdfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+            perror("Socket Error");
+         else
+         {
+            /* Bind Socket */
+            if(bind(cmdfd, (struct sockaddr *)&cmdsck, sizeof(cmdsck)) != 0)
+               perror("Socket Binding Error");
+            
+            /* Spawn and new thread and call the function */
+            if(pthread_create(&tid,
+                              NULL,
+                              eng_funcs.cmd_line_inter,
+                              (void *)&cmdfd) != 0)
+               perror("Error Creating new Thread for Command Line Interface");
+         }
+      }
+      else
+         perror("Bad IP Address");
    }
 
    estat.eng_stop = -1;
@@ -339,7 +359,7 @@ void engine_shutdown()
 
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
-      pwr_sck.sin_port = (STATIC_PWR_PORT);
+      pwr_sck.sin_port = htons(STATIC_PWR_PORT);
       pwr_sck.sin_family = AF_INET;
    }
    else
@@ -407,7 +427,7 @@ int getPwrAlloc()
 
    if(inet_pton(AF_INET, IP_ADDRESS, &(pwr_sck.sin_addr)) > 0)
    {
-      pwr_sck.sin_port = (STATIC_PWR_PORT);
+      pwr_sck.sin_port = htons(STATIC_PWR_PORT);
       pwr_sck.sin_family = AF_INET;
    }
    else
@@ -1024,13 +1044,21 @@ int setImpSpeed_test()
 */
 void run_tests()
 {
-//   connection *c;
+   connection *c;
    char *tmp = malloc(12);
    int i;
    unsigned char *pw = malloc(9);
    pw = memcpy(pw, &phraser, 9);
    
-//   c = sslConnect();
+   c = sslConnect();
+
+   if(c->sslHandle == NULL)
+   {
+      free(c);
+      free(pw);
+      free(tmp);
+      return;
+   }
 
    if(initWarp_test() == -1 ||
          initImpulse_test() == -1 ||
@@ -1068,9 +1096,9 @@ void run_tests()
    tmp[9] = TEAM_ID;
    tmp[10] = ENGINES_SVC_NUM;
 
-//   sslWrite(c, tmp, 12);
+   sslWrite(c, tmp, 12);
    free(tmp);
-//   sslDisconnect(c);
+   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */
@@ -1087,7 +1115,7 @@ int tcpConnect()
    else
    {
       server.sin_family = AF_INET;
-      server.sin_port = htons(SK_PORT);
+      server.sin_port = (SK_PORT);
       inet_pton(AF_INET, SK_IP, &(server.sin_addr));
       bzero(&(server.sin_zero), 8);
 
