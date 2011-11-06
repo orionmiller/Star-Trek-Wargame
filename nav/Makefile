@@ -2,7 +2,6 @@ CC = gcc
 DEBUG = -g
 WARNFLAGS = -Wall -Werror
 SSLFLAGS = -lssl -lcrypto
-INCLUDE = ../includes/smartalloc.c
 
 all:  nav ship
 
@@ -11,7 +10,7 @@ nav:
 
 ship:
 	$(CC) $(WARNFLAGS) -pthread -c -o snav.o snav.c 
-	$(CC) $(WARNFLAGS) $(DEBUG) -pthread -o snav snav.o nav.o $(INCLUDE) $(SSLFLAGS)
+	$(CC) $(WARNFLAGS) $(DEBUG) -pthread -o snav snav.o nav.o $(SSLFLAGS)
 
 clean:
 	rm -rf nav.o snav

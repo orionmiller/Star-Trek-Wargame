@@ -27,8 +27,8 @@ Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
 #define DMG_PER_UNIT_RAD 1
 #define COOLING_RATE 16
 
-#define SK_IP "10.13.37.40"
-#define SK_PORT 443
+#define SK_IP "10.13.37.15"
+#define SK_PORT 48122
 
 /* 
    DECRYPTING DEFINES ORDER
@@ -42,10 +42,10 @@ Compile as:    gcc -c eng.c -o engd.o -lpthread -Wpacked
 #define TEAM_ID 0
 
 /* Team A */
-char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
+//char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
 
 /* Team B */
-//char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
+char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
 
 /* Power Usages for Speeds where 0th Index is Impulse */
 int eng_pwr_use[10] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
@@ -627,7 +627,7 @@ int engage_impulse(int speed)
    if(testing)
    {
       imp_sp = speed;
-      return -1;
+      return 1;
    }
    else
    {
@@ -678,7 +678,7 @@ int impulse_speed(int speed)
    if(testing)
    {
       imp_sp = speed;
-      return -1;
+      return 1;
    }
    else
    {
@@ -730,7 +730,7 @@ int engage_warp(int speed)
    if(testing)
    {
       warp_sp = speed;
-      return -1;
+      return 1;
    }
    else
    {
@@ -781,7 +781,7 @@ int warp_speed(int speed)
    if(testing)
    {
       warp_sp = speed;
-      return -1;
+      return 1;
    }
    else
    {
@@ -962,13 +962,7 @@ int validImpSpeeds_test()
       imp_sp = -1;
       
       // IF wrapper does NOT return -1 THEN FAILED
-      if(eng_funcs.wimpulse_speed(10) != -1 && imp_sp != -1)
-         return -1;
-      // IF wrapper does NOT return -1 for speed of -2 THEN FAILED
-      else if(eng_funcs.wimpulse_speed(-2) != -1 && imp_sp != -1)
-         return -1;
-      else
-         return 1;
+      return (eng_funcs.wimpulse_speed(10) == -1 && imp_sp == -1);
    }
    else
       return 0;
@@ -984,14 +978,7 @@ int validWarpSpeeds_test()
       // RUN TESTS
       // TRY to increase warp to 10
       warp_sp = -1;
-      // IF wrapper does not return @ warp to 10 THEN FAILED
-      if(eng_funcs.wwarp_speed(10) != -1 && warp_sp != -1)
-         return -1;
-      // TRY to decrease warp to -3
-      else if(eng_funcs.wwarp_speed(-3) != -1 && warp_sp != -1)
-         return -1;
-      else
-         return 1;
+      return (eng_funcs.wwarp_speed(10) == -1 && warp_sp == -1);
    }
    // ELSE
    else
@@ -1008,10 +995,7 @@ int setWarpSpeed_test()
       // TRY to set Warp speed to 5
       warp_sp = -1;
       // IF wrapper does not return success && warp_sp != 5 THEN FAILED
-      if(eng_funcs.wwarp_speed(5) != warp_sp)
-         return -1;
-      else
-         return 1;
+      return (eng_funcs.wwarp_speed(5) == warp_sp);
    }
    // ELSE
    else
@@ -1028,10 +1012,7 @@ int setImpSpeed_test()
       // TRY to set Impulse speed to 6
       imp_sp = -1;
       // IF wrapper does not return success && imp_sp != 6 THEN FAILED
-      if(eng_funcs.wimpulse_speed(6) != imp_sp)
-         return -1;
-      else
-         return 1;
+      return eng_funcs.wimpulse_speed(6) == imp_sp;
    }
    // ELSE
    else
@@ -1060,13 +1041,13 @@ void run_tests()
       return;
    }
 
-   if(initWarp_test() == -1 ||
-         initImpulse_test() == -1 ||
-         validImpSpeeds_test() == -1 ||
-         validWarpSpeeds_test() == -1 ||
-         setWarpSpeed_test() == -1 ||
-         setImpSpeed_test() == -1 ||
-         estat.eng_dmg >= MAX_SHIP_DMG)
+   if(!initWarp_test() ||
+      !initImpulse_test() ||
+      !validImpSpeeds_test() ||
+      !validWarpSpeeds_test() ||
+      !setWarpSpeed_test() ||
+      !setImpSpeed_test() ||
+      estat.eng_dmg >= MAX_SHIP_DMG)
    {
       for(i = 0; i < 9; i++)
       {
@@ -1115,7 +1096,7 @@ int tcpConnect()
    else
    {
       server.sin_family = AF_INET;
-      server.sin_port = (SK_PORT);
+      server.sin_port = htons(SK_PORT);
       inet_pton(AF_INET, SK_IP, &(server.sin_addr));
       bzero(&(server.sin_zero), 8);
 

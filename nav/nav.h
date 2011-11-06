@@ -16,7 +16,6 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
 #include "../includes/eng_packet.h"
 #include "../includes/nav_packet.h"
@@ -28,7 +27,7 @@
 /* Log file Location */
 #define LOG_FILE_LOCATION "../logs/navigation.log"
 #define LOG_FILE_PERMS 0666
-#define IP_ADDRESS "127.0.0.1"
+#define IP_ADDRESS "10.13.37.59"
 #define NAV_CLI_PORT 2001
 
 #define PASABLE_OBJ 1

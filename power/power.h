@@ -16,7 +16,6 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "../includes/smartalloc.h"
 #include "../includes/pwr_packet.h"
 
 /* See "man listen(2)" for second parameter */
@@ -26,7 +25,7 @@
 /* Log file Location */
 #define LOG_FILE_LOCATION "../logs/power.log"
 #define LOG_FILE_PERMS 0666
-#define IP_ADDRESS "127.0.0.1"
+#define IP_ADDRESS "10.13.37.59"
 #define PWR_CLI_PORT 2011
 
 /* The file descriptor for writing to the Log file */

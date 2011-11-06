@@ -23,7 +23,7 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define INIT_POWER_ALLOC 10
 
 #define SK_IP "10.13.37.15"
-#define SK_PORT 443
+#define SK_PORT 48122
 
 /* 
    DECRYPTING DEFINES ORDER
@@ -37,10 +37,10 @@ Compile as:    gcc -c power.c -o pwrd.o -lpthread -Wpacked
 #define TEAM_ID 0
 
 /* Team A */
-char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
+//char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
 
 /* Team B */
-//char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
+char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
 
 typedef struct srvcs_struct Service;
 
@@ -449,7 +449,7 @@ void *request_handler(void *in)
    {
       if((svc_id = pow_funcs.wregister_service(pwrhd->src_svc, pwrhd->pid)))
       {
-         for(src = servs; src->id != svc_id; src = src->next)
+         for(src = servs; src->id != pwrhd->src_svc; src = src->next)
             ;
 
          write(logfd, ctime(&tm), strlen(ctime(&tm)) - 1);
@@ -522,7 +522,7 @@ int send_packet(struct PowerHeader *msg, int confd)
       else
          send_packet_test = 0;
       
-      return -1;
+      return 0;
    }
 }
 
@@ -780,7 +780,7 @@ int register_service(int id, int pId)
    ptr->pid = pId;
    ptr->pwr_alloc = ((resPwr - INIT_POWER_ALLOC) >= 0) ? INIT_POWER_ALLOC : INIT_POWER_ALLOC - resPwr;
    pthread_mutex_unlock(&mutex);
-   return ptr->id;
+   return ptr->pwr_alloc;
 }
 
 int unregister_service(int id)
@@ -885,59 +885,12 @@ int addTooMuchPower_test()
    /* Store old values */
    int num_servs = getNumberServices();
    int cur_pwr_remain = reservePowerRemaining();
-//   Service *old_data, *serv, *next;
-   int rtn_val;
    
-   if(num_servs > 0)
-   {
-/*      old_data = (Service *)malloc(sizeof(Service) * num_servs);
-      bzero(old_data, sizeof(Service) * num_servs);
-      
-      if(memcpy(old_data, servs, sizeof(Service) * num_servs) != old_data)
-      {
-         free(old_data);
-         return 1;
-      } */
-      
-      cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
-      bzero(cor_hd, sizeof(struct PowerHeader));
-      cor_hd->ver = 1;
-      cor_hd->len = sizeof(struct PowerHeader);
-      cor_hd->alloc = servs->pwr_alloc + cur_pwr_remain;
-      cor_hd->dest_svc = servs->id;
-      cor_hd->src_svc = POWER_SVC_NUM;
-      cor_hd->req_type_amt = (REQ_RES_ALLOC << 4);
+   gamt = gdest = -1;
 
-      send_packet_test = 0;
+   num_servs = pow_funcs.wadd_power(cur_pwr_remain + 10, (num_servs > 0) ? servs->id : 6);
 
-      num_servs = pow_funcs.wadd_power(cur_pwr_remain + 10, servs->id);
-
-      free(cor_hd);
-      
-      if(!send_packet_test && num_servs != -1)
-         rtn_val = -1;
-      else
-         rtn_val = 1;
-      
-/*      for(serv = next = servs; next; serv = next)
-      {
-         next = serv->next;
-         free(serv);
-      }
-
-      servs = old_data; */
-      
-      return rtn_val;
-   }
-   else
-   {
-      send_packet_test = -1;
-      
-      if(pow_funcs.wadd_power(cur_pwr_remain + 10, 6) != -1 && send_packet_test != -1)
-         return -1;
-      else
-         return 1;
-   }
+   return (gamt == -1 && gdest == -1 && num_servs == -1);
 }
 
 /* Make sure you can't free so much power that the current allocated goes 
@@ -947,58 +900,14 @@ int freeTooMuchPower_test()
    /* Store old values */
    int num_servs = getNumberServices();
    int cur_pwr_remain = reservePowerRemaining();
-//   Service *old_data, *serv, *next;
-   int rtn_val;
    
-   if(num_servs > 0)
-   {
-/*      old_data = (Service *)malloc(sizeof(Service) * num_servs);
-      bzero(old_data, sizeof(Service) * num_servs);
-      if(memcpy(old_data, servs, sizeof(Service) * num_servs) != old_data)
-      {
-         free(old_data);
-         return 1;
-      } */
+   gamt = gdest = -1;
+
+   num_servs = pow_funcs.wfree_power(
+                  (num_servs > 0) ? servs->pwr_alloc : 0 + cur_pwr_remain + 1, 
+                  (num_servs > 0) ? servs->id : 4);
    
-      cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
-      bzero(cor_hd, sizeof(struct PowerHeader));
-      cor_hd->ver = 1;
-      cor_hd->len = sizeof(struct PowerHeader);
-      cor_hd->alloc = servs->pwr_alloc + cur_pwr_remain + 1;
-      cor_hd->dest_svc = servs->id;
-      cor_hd->src_svc = POWER_SVC_NUM;
-      cor_hd->req_type_amt = (REQ_RES_DEALLOC << 4);
-
-      send_packet_test = 0;
-
-      num_servs = pow_funcs.wfree_power(servs->pwr_alloc + cur_pwr_remain + 1, servs->id);
-   
-      free(cor_hd);
-
-      if(!send_packet_test && num_servs != -1)
-         rtn_val = -1;
-      else
-         rtn_val = 1;
-
-/*      for(serv = next = servs; next; serv = next)
-      {
-         next = serv->next;
-         free(serv);
-      }
-
-      servs = old_data; */
-  
-      return rtn_val;
-   }
-   else
-   {
-      send_packet_test = -1;
-
-      if(pow_funcs.wfree_power(cur_pwr_remain + 1, 4) != -1 && send_packet_test != -1)
-         return -1;
-      else
-         return 1;
-   }
+   return (num_servs == -1 && gamt == -1 && gdest == -1);
 }
 
 /* Try to transfer more power than source service has available */
@@ -1007,69 +916,18 @@ int transferTooMuchPower_test()
    /* Store old values */
    int num_servs = getNumberServices();
    int cur_pwr_remain = reservePowerRemaining();
-//   Service *old_data, *serv, *next;
-   int rtn_val;
-   
+  
+   gamt = gdest = gsrc = -1;
+
    if(num_servs > 0)
-   {
-/*      old_data = (Service *)malloc(sizeof(Service) * num_servs);
-      bzero(old_data, sizeof(Service) * num_servs);
-
-      if(memcpy(old_data, servs, sizeof(Service) * num_servs) != old_data)
-      {
-         free(old_data);
-         return 1;
-      }
-*/   
-      if(num_servs < 2)
-      {
-         if(pow_funcs.wtransfer_power(servs->pwr_alloc, servs->id, servs->next->id) != -1)
-            rtn_val = -1;
-         else
-            rtn_val = 1;
-      }
-      else
-      {
-         cor_hd = (struct PowerHeader *)malloc(sizeof(struct PowerHeader));
-         cor_hd->ver = 1;
-         cor_hd->len = sizeof(struct PowerHeader);
-         cor_hd->alloc = servs->pwr_alloc + cur_pwr_remain + 1;
-         cor_hd->dest_svc = servs->id;
-         cor_hd->src_svc = POWER_SVC_NUM;
-         cor_hd->req_type_amt = (REQ_RES_DEALLOC << 4);
-
-         send_packet_test = 0;
-
-         num_servs = pow_funcs.wtransfer_power(servs->pwr_alloc + cur_pwr_remain + 1, 
-                                                servs->id, servs->next->id);
-
-         free(cor_hd);
-
-         if(!send_packet_test && num_servs != -1)
-            rtn_val = -1;
-         else
-            rtn_val = 1;
-      }
-
-/*      for(serv = next = servs; next; serv = next)
-      {
-         next = serv->next;
-         free(serv);
-      }
-
-      servs = old_data; */
-   
-      return rtn_val;
-   }
+      num_servs = pow_funcs.wtransfer_power(
+                     servs->pwr_alloc + (num_servs < 2) ? 0 : cur_pwr_remain + 1,
+                     servs->id, 
+                     (num_servs < 2) ? (servs->id + 1) : servs->next->id);
    else
-   {
-      send_packet_test = -1;
+      num_servs = pow_funcs.wtransfer_power(cur_pwr_remain + 1, 2, 1);
 
-      if(pow_funcs.wtransfer_power(cur_pwr_remain + 1, 2, 1) != -1 && send_packet_test != -1)
-         return -1;
-      else
-         return 1;
-   }
+   return (num_servs == -1 && gamt == -1 && gdest == -1 && gsrc == -1);
 }
 
 
@@ -1097,11 +955,9 @@ void run_tests()
       return;
    }
 
-   fprintf(stderr, "here\n");
-
-   if(addTooMuchPower_test() == -1 ||
-         freeTooMuchPower_test() == -1 ||
-         transferTooMuchPower_test() == -1)
+   if(!addTooMuchPower_test() ||
+      !freeTooMuchPower_test() ||
+      !transferTooMuchPower_test())
    {
       for(i = 0; i < 9; i++)
       {
@@ -1113,6 +969,8 @@ void run_tests()
       }
       free(pw);
       tmp[i] = 0;
+
+      fprintf(stderr, "failed tests\n");
    }
    else
    {
@@ -1126,6 +984,8 @@ void run_tests()
       }
       free(pw);
       tmp[11] = 1;
+
+      fprintf(stderr, "passed tests\n");
    }
 
    tmp[9] = TEAM_ID;

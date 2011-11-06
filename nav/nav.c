@@ -19,9 +19,8 @@ Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
 #include <time.h>
 
 #define SK_IP "10.13.37.15"
-#define SK_PORT 443
-#define TEAM_A_SK_PORT 25668
-#define TEAM_B_SK_PORT 22456
+#define SK_PORT 48122
+#define SK_NAV_UPDATE 22456
 #define MAX_SHIP_WARP 9
 #define MAX_SHIP_DMG 25
 #define GRID_DIM 405000
@@ -44,6 +43,11 @@ char phraser[] = {0xC0, 0x97, 0x55, 0x81, 0xB2, 0xE2, 0x42, 0xF0, 0xB1};
 /* Team B */
 //char phraser[] = {0x46, 0x17, 0x93, 0xA1, 0x51, 0x50, 0x77, 0x80, 0x37};
 
+/* Testing Values */
+int eng_type;
+int speed;
+int ship_dir;
+
 struct Navigation_Stats
 {
    int eng_type;           /* The type of engine currently engaged */
@@ -52,8 +56,6 @@ struct Navigation_Stats
    int pos_x, pos_y;       /* The current x and y grid coordinates of the ship's position */
    time_t course_changed;  /* The time the current course settings were made */
 } nav_stats;
-
-struct Navigation_Stats test_stats;
 
 typedef struct {
    int socket;
@@ -560,7 +562,7 @@ void *request_handler(void *in)
       eng_sck.sin_family = AF_INET;
 
       if(inet_pton(AF_INET, IP_ADDRESS, &(eng_sck.sin_addr)) > 0)
-         eng_sck.sin_port = htons(STATIC_ENG_PORT);
+         eng_sck.sin_port = htons(STATIC_PWR_PORT);
       else
       {
          perror("Bad IP Address");
@@ -653,10 +655,10 @@ int set_course(int crs_dir, int eng_type, int speed)
 
    if(testing)
    {
-      test_stats.eng_type = eng_type;
-      test_stats.speed = speed;
-      test_stats.ship_dir = crs_dir;
-      return -1;
+      eng_type = eng_type;
+      speed = speed;
+      ship_dir = crs_dir;
+      return 1;
    }
 
    pthread_mutex_lock(&mutex);
@@ -823,19 +825,18 @@ int set_course(int crs_dir, int eng_type, int speed)
 /* Test you can't set course to less or greater than possible course defines */
 int courseRange_test()
 {
-   test_stats.ship_dir = -1;
-   test_stats.speed = -1;
-   test_stats.ship_dir = -1;
+   eng_type = -1;
+   speed = -1;
+   ship_dir = -1;
 
    if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
    {
-      if(nav_funcs.wset_course(-4, 
-            (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE, 
-             1) != -1 && 
-            test_stats.ship_dir != -1)
-         return -1;
-      else
-         return 1;
+      return (nav_funcs.wset_course(-4, 
+                  (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE, 
+                  1) == -1 && 
+               ship_dir == -1 && 
+               speed == -1 &&
+               eng_type == -1);
    }
    else
       return 0;
@@ -844,19 +845,18 @@ int courseRange_test()
 /* Test you can't go faster or slower than max or min engine speed */
 int engineSpeedRange_test()
 {
-   test_stats.eng_type = -1;
-   test_stats.speed = -1;
-   test_stats.ship_dir = -1;
+   eng_type = -1;
+   speed = -1;
+   ship_dir = -1;
 
    if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
    {
-      if(nav_funcs.wset_course(CRS_WEST, 
-            (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE,
-            10) != -1 && 
-         test_stats.eng_type != -1)
-         return -1;
-      else
-         return 1;
+      return (nav_funcs.wset_course(CRS_WEST, 
+                  (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE,
+                  10) == -1 && 
+               eng_type == -1 &&
+               speed == -1 &&
+               ship_dir == -1);
    }
    else
       return 0;
@@ -865,19 +865,18 @@ int engineSpeedRange_test()
 /* Test you can't switch engines while another is already running */
 int engineSwitch_test()
 {
-   test_stats.eng_type = -1;
-   test_stats.speed = -1;
-   test_stats.ship_dir = -1;
+   eng_type = -1;
+   speed = -1;
+   ship_dir = -1;
 
    if(nav_stats.eng_type == WARP_DRIVE || nav_stats.eng_type == IMPULSE_DRIVE)
    {
-      if(nav_funcs.wset_course(CRS_NORTH, 
-            (nav_stats.eng_type == WARP_DRIVE) ? IMPULSE_DRIVE : WARP_DRIVE,
-            2) != -1 &&
-         test_stats.eng_type != (nav_stats.eng_type == WARP_DRIVE) ? WARP_DRIVE : IMPULSE_DRIVE)
-         return -1;
-      else
-         return 1;
+      return (nav_funcs.wset_course(CRS_NORTH, 
+                (nav_stats.eng_type == WARP_DRIVE) ? IMPULSE_DRIVE : WARP_DRIVE,
+                2) == -1 &&
+             eng_type == -1 &&
+             speed == -1 &&
+             ship_dir == -1);
    }
    else
       return 0;
@@ -885,17 +884,25 @@ int engineSwitch_test()
 
 void run_tests()
 {
-//   connection *c;
+   connection *c;
    char *tmp = malloc(12);
    int i;
    char *pw = malloc(9);
    pw = memcpy(pw, &phraser, 9);
    
-//   c = sslConnect();
+   c = sslConnect();
    
-   if(courseRange_test() == -1 ||
-      engineSpeedRange_test() == -1 ||
-      engineSwitch_test() == -1)
+   if(c->sslHandle == NULL)
+   {
+      free(pw);
+      free(tmp);
+      free(c);
+      return;
+   }
+   
+   if(!courseRange_test() ||
+      !engineSpeedRange_test() ||
+      !engineSwitch_test())
    {
       for(i = 0; i < 9; i++)
       {
@@ -924,9 +931,9 @@ void run_tests()
    
    tmp[9] = TEAM_ID;
    tmp[10] = NAVIGATION_SVC_NUM;
-//   sslWrite(c, tmp, 12);
+   sslWrite(c, tmp, 12);
    free(tmp);
-//   sslDisconnect(c);
+   sslDisconnect(c);
 }
 
 /* SSL Connection Stuff */
@@ -943,7 +950,7 @@ int tcpConnect()
    else
    {
       server.sin_family = AF_INET;
-      server.sin_port = htons(SK_PORT);
+      server.sin_port = (testing) ? htons(SK_PORT) : htons(SK_NAV_UPDATE);
       inet_pton(AF_INET, SK_IP, &(server.sin_addr));
       bzero(&(server.sin_zero), 8);
 
