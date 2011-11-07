@@ -627,7 +627,7 @@ int engage_impulse(int speed)
    if(testing)
    {
       imp_sp = speed;
-      return 1;
+      return 0;
    }
    else
    {
@@ -678,7 +678,7 @@ int impulse_speed(int speed)
    if(testing)
    {
       imp_sp = speed;
-      return 1;
+      return 0;
    }
    else
    {
@@ -730,7 +730,7 @@ int engage_warp(int speed)
    if(testing)
    {
       warp_sp = speed;
-      return 1;
+      return 0;
    }
    else
    {
@@ -781,7 +781,7 @@ int warp_speed(int speed)
    if(testing)
    {
       warp_sp = speed;
-      return 1;
+      return 0;
    }
    else
    {

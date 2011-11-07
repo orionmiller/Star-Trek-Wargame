@@ -541,7 +541,7 @@ int transfer_power(int amt, int src, int dest)
       gamt = amt;
       gsrc = src;
       gdest = dest;
-      return 1;
+      return 0;
    }
    
    tm = time(NULL);
@@ -625,7 +625,7 @@ int add_power(int amt, int dest)
    {
       gamt = amt;
       gdest = amt;
-      return 1;
+      return 0;
    }
 
    tm = time(NULL);
@@ -700,7 +700,7 @@ int free_power(int amt, int dest)
    {
       gamt = amt;
       gdest = dest;
-      return 1;
+      return 0;
    }
 
    tm = time(NULL);

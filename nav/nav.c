@@ -23,7 +23,7 @@ Compile as:    gcc -c nav.c -o nav.o -lpthread -Wpacked
 #define SK_NAV_UPDATE 22456
 #define MAX_SHIP_WARP 9
 #define MAX_SHIP_DMG 25
-#define GRID_DIM 405000
+#define GRID_DIM 40500
 #define NUM_GRIDS 40
 
 /* 
@@ -103,6 +103,8 @@ void *request_handler(void *in);
 void *draw_map(void *);
 void print_navigation_status(void);
 void reset_navs(int, int, int, int, int);
+void calculate_new_pos(int *new_x, int *new_y);
+void sk_update_pos();
 
 void run_tests();
 
@@ -309,6 +311,10 @@ void navigation_startup()
 
          /* Reinstall testing timer */
          testing = 0;
+
+         /* Send position update to Score Keeper */
+         sk_update_pos();
+
          setitimer(ITIMER_REAL, &testtv, NULL);
          continue;
       }
@@ -644,11 +650,7 @@ int speed_check(int eng, int sp)
 
 int set_course(int crs_dir, int eng_type, int speed)
 {
-   double d;
-   int num_xgrids, num_ygrids, num_grids;
-   int v;
-   int t_min;
-   int x, y, i;
+   int i;
    char *tmp;
    connection *c;
    unsigned char *pw;
@@ -658,7 +660,7 @@ int set_course(int crs_dir, int eng_type, int speed)
       eng_type = eng_type;
       speed = speed;
       ship_dir = crs_dir;
-      return 1;
+      return 0;
    }
 
    pthread_mutex_lock(&mutex);
@@ -687,122 +689,43 @@ int set_course(int crs_dir, int eng_type, int speed)
       /* IF the speed || direction has changed, then update x and y positions */
       if(nav_stats.speed != speed || nav_stats.ship_dir != crs_dir)
       {
-         t_min = (time(NULL) - nav_stats.course_changed) / 60;
-
-         if(nav_stats.eng_type == IMPULSE_DRIVE)
-            v = imp_spd_min[nav_stats.speed];
-         else
-            v = warp_spd_min[nav_stats.speed];
-
-         d = v * t_min;
-
-         /* IF they are at least 80% of the way to the next box THEN */
-         if((d / GRID_DIM) >= .80)
-         {
-            num_grids = d / GRID_DIM;
-            /* Round up and Move them to the next box */
-            switch(nav_stats.ship_dir)
-            {
-               case CRS_NORTH:
-                  y = -1;
-                  break;
-               case CRS_NORTH_EAST:
-                  x = 1;
-                  y = -1;
-                  break;
-               case CRS_EAST:
-                  x = 1;
-                  break;
-               case CRS_SOUTH_EAST:
-                  x = y = 1;
-                  break;
-               case CRS_SOUTH:
-                  y = 1;
-                  break;
-               case CRS_SOUTH_WEST:
-                  y = 1;
-                  x = -1;
-                  break;
-               case CRS_WEST:
-                  x = -1;
-                  break;
-               case CRS_NORTH_WEST:
-                  x = y = -1;
-                  break;
-               default:
-                  x = y = 0;
-                  break;
-            }
-
-            /* Scale up to the number of grids they moved */
-            num_ygrids = y * (num_grids % NUM_GRIDS);
-            num_xgrids = x * (num_grids % NUM_GRIDS);
-
-            if(nav_stats.pos_x + num_xgrids >= NUM_GRIDS)
-               nav_stats.pos_x = (num_xgrids -= (NUM_GRIDS - 1 - nav_stats.pos_x)) - 1;
-            else if(nav_stats.pos_x + num_xgrids < 0)
-               nav_stats.pos_x = NUM_GRIDS - (num_xgrids - nav_stats.pos_x);
-            else
-               nav_stats.pos_x += num_xgrids;
-               
-            if(nav_stats.pos_y + y >= NUM_GRIDS)
-               nav_stats.pos_y = (num_ygrids -= (NUM_GRIDS - 1 - nav_stats.pos_y)) - 1;
-            else if(nav_stats.pos_y + num_ygrids < 0)
-               nav_stats.pos_y = NUM_GRIDS - (num_ygrids - nav_stats.pos_y);
-            else
-               nav_stats.pos_y += num_ygrids;
-
-            if(c)
-            {
-               /* Notify Score Keeper About New Position */
-               tmp = (char *)malloc(sizeof(char) * 13);
-               pw = (unsigned char *)malloc(9);
-               memcpy(pw, &phraser, 9);
-               for(i = 0; i < 9; i++)
-               {
-                  XOR((pw+i));
-                  SWAP((pw+i));
-                  SUB((pw+i));
-                  FLIP((pw+i));
-                  tmp[i] = pw[i];
-               }
-               free(pw);
-               tmp[9] = TEAM_ID;
-               tmp[10] = nav_stats.pos_x;
-               tmp[11] = nav_stats.pos_y;
-               sslWrite(c, tmp, strlen(tmp));
-
-               free(tmp);
-               sslDisconnect(c);
-            }
-
-            /* Set new course and speed */
-            nav_stats.ship_dir = crs_dir;
-            nav_stats.eng_type = eng_type;
-            nav_stats.speed = speed;
+         calculate_new_pos(&(nav_stats.pos_x), &(nav_stats.pos_y));
+         /* Set new course and speed */
+         nav_stats.ship_dir = crs_dir;
+         nav_stats.eng_type = eng_type;
+         nav_stats.speed = speed;
             
-            pthread_mutex_unlock(&mutex);
-            return 1;
-         }
-         /* ELSE */
-         else
-         {
-            /* Round down and Keep them in the same box */
-            /* Set to new speed and dir */
-            nav_stats.ship_dir = crs_dir;
-            nav_stats.eng_type = eng_type;
-            nav_stats.speed = speed;
+         pthread_mutex_unlock(&mutex);
 
-//            sslDisconnect(c);
-            pthread_mutex_unlock(&mutex);
-            return 0;
+         tmp = malloc(13);
+         pw = malloc(9);
+
+         pw = memcpy(pw, &phraser, 9);
+
+         for(i = 0; i < 9; i++)
+         {
+            XOR((pw+i));
+            SWAP((pw+i));
+            SUB((pw+i));
+            FLIP((pw+i));
+            tmp[i] = pw[i];
          }
+
+         free(pw);
+    
+         tmp[9] = TEAM_ID;
+         tmp[10] = nav_stats.pos_x;
+         tmp[11] = nav_stats.pos_y;
+         sslWrite(c, tmp, 13);
+         free(tmp);
+         sslDisconnect(c);
+         return 1;
       }
       /* ELSE the speed nor direction changed */
       else
       {
          /* RETURN semi-success state? */
-//         sslDisconnect(c);
+         sslDisconnect(c);
          pthread_mutex_unlock(&mutex);
          return 0;
       }
@@ -882,6 +805,125 @@ int engineSwitch_test()
       return 0;
 }
 
+/* Get the new X,Y map grid positions and set to new_x new_y inputs */
+void calculate_new_pos(int *new_x, int *new_y)
+{
+   int x, y;
+   double d;
+   int num_xgrids, num_ygrids, num_grids;
+   int v;
+   int t_min;
+
+   t_min = (time(NULL) - nav_stats.course_changed) / 60;
+
+   if(nav_stats.eng_type == IMPULSE_DRIVE)
+      v = imp_spd_min[nav_stats.speed];
+   else
+      v = warp_spd_min[nav_stats.speed];
+
+   d = v * t_min;
+
+   /* IF they are at least 80% of the way to the next box THEN */
+   if((d / GRID_DIM) >= .80)
+   {
+      num_grids = d / GRID_DIM;
+      /* Round up and Move them to the next box */
+      switch(nav_stats.ship_dir)
+      {
+         case CRS_NORTH:
+            y = -1;
+            break;
+         case CRS_NORTH_EAST:
+            x = 1;
+            y = -1;
+            break;
+         case CRS_EAST:
+            x = 1;
+            break;
+         case CRS_SOUTH_EAST:
+            x = y = 1;
+            break;
+         case CRS_SOUTH:
+            y = 1;
+            break;
+         case CRS_SOUTH_WEST:
+            y = 1;
+            x = -1;
+            break;
+         case CRS_WEST:
+            x = -1;
+            break;
+         case CRS_NORTH_WEST:
+            x = y = -1;
+            break;
+         default:
+            x = y = 0;
+            break;
+      }
+
+      /* Scale up to the number of grids they moved */
+      num_ygrids = y * (num_grids % NUM_GRIDS);
+      num_xgrids = x * (num_grids % NUM_GRIDS);
+
+      if(nav_stats.pos_x + num_xgrids >= NUM_GRIDS)
+         (*new_x) = (num_xgrids -= (NUM_GRIDS - 1 - nav_stats.pos_x)) - 1;
+      else if(nav_stats.pos_x + num_xgrids < 0)
+         (*new_x) = NUM_GRIDS - (num_xgrids - nav_stats.pos_x);
+      else
+         nav_stats.pos_x += num_xgrids;
+               
+      if(nav_stats.pos_y + y >= NUM_GRIDS)
+         (*new_y) = (num_ygrids -= (NUM_GRIDS - 1 - nav_stats.pos_y)) - 1;
+      else if(nav_stats.pos_y + num_ygrids < 0)
+         (*new_y) = NUM_GRIDS - (num_ygrids - nav_stats.pos_y);
+      else
+         (*new_y) += num_ygrids;
+   }
+   else
+   {
+      (*new_x) = nav_stats.pos_x;
+      (*new_y) = nav_stats.pos_y;
+   }
+}
+
+void sk_update_pos()
+{
+   connection *c;
+   char *tmp = malloc(13);
+   int i, x, y;
+   unsigned char *pw = malloc(9);
+   c = sslConnect();
+
+   if(c->sslHandle == NULL)
+   {
+      free(tmp);
+      free(pw);
+      return;
+   }
+   
+   calculate_new_pos(&x, &y);
+
+   pw = memcpy(pw, &phraser, 9);
+
+   for(i = 0; i < 9; i++)
+   {
+      XOR((pw+i));
+      SWAP((pw+i));
+      SUB((pw+i));
+      FLIP((pw+i));
+      tmp[i] = pw[i];
+   }
+
+   free(pw);
+    
+   tmp[9] = TEAM_ID;
+   tmp[10] = x;
+   tmp[11] = y;
+   sslWrite(c, tmp, 13);
+   free(tmp);
+   sslDisconnect(c);  
+}
+
 void run_tests()
 {
    connection *c;
@@ -900,9 +942,9 @@ void run_tests()
       return;
    }
    
-   if(!courseRange_test() ||
-      !engineSpeedRange_test() ||
-      !engineSwitch_test())
+   if(courseRange_test() ||
+      engineSpeedRange_test() ||
+      engineSwitch_test())
    {
       for(i = 0; i < 9; i++)
       {
@@ -936,7 +978,14 @@ void run_tests()
    sslDisconnect(c);
 }
 
-/* SSL Connection Stuff */
+/* 
+   SSL Connection Stuff 
+
+   The following functions (tcpConnect, sslConnect, sslDisconnect, and sslWrite)
+      were taken and modified from the solution provided by cyril at 
+      SaveTheIons.Com. The original post can be found at
+      http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/
+*/
 int tcpConnect()
 {
    int error, handle;
@@ -1000,6 +1049,9 @@ connection *sslConnect(void)
 
 void sslDisconnect(connection *c)
 {
+   if(!c)
+      return;
+
    if(c->socket)
       close(c->socket);
    

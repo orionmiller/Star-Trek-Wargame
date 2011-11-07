@@ -54,6 +54,14 @@ int logfd;
    Faster speeds require more power.
       Power Usages for Speeds where 1st is for all Impulse Speeds
          4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+
+   Warp and Impulse Speeds to Human Speed Conversions (in kilometers) Using 300,000 m/s as C
+      - Impulse Speeds per Hour = {0, 67500, 90000, 135000, 180000, 202500, 270000}
+      - Warp Speeds per Hour = {1080000, 2160000, 3240000, 4320000, 5400000, 
+                                 6480000, 7560000, 8640000, 9720000}
+      - Impulse Speeds per Minute = {0, 1125, 1500, 2250, 3000, 3375, 4500}
+      - Warp Speeds per Minute = {18000, 36000, 54000, 72000, 90000, 108000, 
+                                 126000, 144000, 162000}
 */
 
 /* 

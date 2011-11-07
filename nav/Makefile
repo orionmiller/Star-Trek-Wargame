@@ -9,7 +9,7 @@ nav:
 	$(CC) $(WARNFLAGS) -pthread -c -o nav.o nav.c -Wpacked
 
 ship:
-	$(CC) $(WARNFLAGS) -pthread -c -o snav.o snav.c 
+	$(CC) $(WARNFLAGS) -pthread -c -o snav.o snav.c
 	$(CC) $(WARNFLAGS) $(DEBUG) -pthread -o snav snav.o nav.o $(SSLFLAGS)
 
 clean:

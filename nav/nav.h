@@ -13,7 +13,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "../includes/pwr_packet.h"
