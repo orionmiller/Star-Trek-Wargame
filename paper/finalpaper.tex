@@ -1,0 +1,202 @@
+\documentclass[10pt]{article}
+
+\usepackage{url}
+\usepackage{ulem}
+\usepackage{geometry}
+\usepackage{float}
+
+\geometry{letterpaper}
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+\begin{document}
+
+\title{\vfill Title}
+\author{
+ By Dirk Cummings \vspace{10pt} \\
+ Orion Miller \vspace{10pt} \\ 
+Senior Project  \vspace{10pt} \\ 
+Dr. Philip Nico \vspace{10pt} \\ 
+}
+\date{December 2, 2011}
+
+\maketitle
+
+\vfill  %in combination with \newpage this forces the abstract to the bottom of the page
+\begin{abstract}
+Abstract
+\end{abstract}
+
+\thispagestyle{empty} %remove page number from title page
+\newpage
+
+
+%Create a table of contents with all headings of level 3 and above.  
+%http://en.wikibooks.org/wiki/LaTeX/Document_Structure#Table_of_contents has info on customizing the table of contents
+\thispagestyle{empty}  %Remove page number from TOC
+\tableofcontents
+
+\newpage
+\setcounter{page}{1}
+
+\section{Research of other CTFs}
+
+\section{Objectives}
+
+\section{The Doom Scenario}
+\subsection{Objectives}
+\subsection{Design}
+\subsection{Game Day Results}
+\subsection{Problems and Solutions}
+
+\section{The Star Trek Scenario}
+\subsection{Objectives}
+After the first CTF competition, we wanted to make the next CTF focus mainly on
+solving two problems:
+\begin{itemize}
+	\item testing the individual’s coding and hacking skills rather than their
+	\item ability to find and use pre-built tools and prevent the participants from
+	breaking the servers (rather than the services) and ruining the game.
+\end{itemize}
+
+These would not only improve the overall game play and enjoyment, but would
+help eliminate game town time spent repairing and restoring the virtual machine
+server’s images. Additionally, by designing new services from the ground up we
+can demonstrate to participants and give them experience with the common cause
+of vulnerabilities: poor design.
+
+The first scenario was good for getting the uninitiated starting in security,
+however, it did lacked While the first scenario focused mainly on attacking
+servers and their services, we needed to even the importance of defending to
+better align the game with a real world scenario.
+
+Lastly, players of the first competition noted in their feedback they wanted
+more teamwork based cooperation. Specifically, those with little to no security
+experience had a tough time working out the solutions and would have liked to
+work with others outside of their team to learn techniques and practices. Team
+formation in the second competition needed to move away from the standard
+method by which those who know each other tightly group together thus
+separating those who know from those who don’t. This method tends to create
+groups with varying experience and a hording of knowledge.
+
+\subsection{Design}
+To ensure no participant would be able to use pre-built tools to exploit
+vulnerabilities, we chose to design services one might program during the first
+implementations of a ship from Star Trek. This design was chosen for two
+reasons: in the summer of 2011 Netflix began streaming every episode of every
+Star Trek series \cite{Netflix}, and we couldn’t find anyone who had created
+such services or written anything to exploit such services. A listing of these
+services and their designs can be found in the Game Play and Services sections.
+The new approach also allowed us to make changes to the game play to focus on a
+more team based play.
+
+\subsubsection{Game Play}
+The new game design was made to resemble a WarGame style of play consisting of
+only two teams each their own server to manage. We were even fortunate enough
+to provide both teams with their own rooms to work in together. Each team would
+initially receive the same source code of the services to fix and deploy on
+their servers. Their goal to find and patch the vulnerabilities in their code
+and exploit them in the other team. If a team could keep their services
+responding and pass basic functionality tests they would score points. However,
+if their services become unresponsive or failed the tests, whether their own
+fault or the opposing team, they would stop receiving points while the opposing
+team would score additional points.
+
+We also wanted to give those participants with little or no hacking, or even
+coding, experience something entertaining and contributory to do. Since these
+services should be fully functional and represent a star ship, then it stands
+those who feel they can’t contribute could fly the ship around and score points
+for their team by shooting the other team’s ship.
+
+\subsubsection{Score Keeping}
+
+\subsubsection{Services}
+On competition day, there were three implemented services in production for
+teams to work on with three additional services planned to be released later in
+the competition. Each of the planned services and a brief description of their
+functionality is listed at the end of this section.
+
+Services are designed with two major parts, the built-in (or base)
+functionality, and the competitor’s implementation.
+
+The base functionality is implemented by us and provided in unlinked
+pre-compiled form for each team build from. It is meant to represent the
+initial implementation of ship’s services programmers. There are a few seeded
+vulnerabilities and even more poor and hastily made designs. Base
+implementation of a service is responsible only for:
+
+\begin{itemize}
+    \item provide only the most basic level of support and implementation
+    necessary for the service to run, 
+    \item setup the network support required for running the service,
+    \item listen on an assigned port, accept incoming connections, and pass on
+    the connection to a handler which processes the incoming data,
+    \item run base functionality tests on the competitor’s implementation and
+    pass on the results to the Score Keeper for scoring,
+    \item and keep a modest amount of internal book keeping specific to the
+    service to ensure the honesty of a competitor’s implementation.
+\end{itemize}
+
+While the exact functions for each service differ, every service’s base
+implementation has functions (defined externally in header files) for the
+competitor’s code to call before finishing processing an incoming request. For
+each of a service’s base function, there is a corresponding competitor’s
+wrapper function to be called before the equivalent base function. The location
+of the wrapper functions are stored in a structure as function pointers defined
+in a shared header file between both implementations. These wrapper functions
+allow the competitors the chance to perform their own book keeping and sanitize
+inputs from requests before calling the base functions. A diagram of the
+typical call stack is available in Diagram XX.XX. This is one way in which the
+players can patch vulnerabilities and design flaws.
+
+\paragraph{Power} The critical service of each ship responsible for managing and
+distributing a fixed amount of available ship power to all other running
+services. A service may only run while it has been allocated power. Should a
+service lose power, it shall be stopped and non-responsive until power is
+restored. If the power service itself is shutdown or crashed, all other
+services would be taken offline.
+
+\paragraph{Engines} Just like the engines in the star ships with support for
+both impulse and warp speeds. The engine service is only concerned with
+managing either engine’s current power allocation and speed as well as ensuring
+their health. Each engine leaks varying amounts of radiation which if not
+dissipated could damage the engines to the point they are no longer functional.
+Scotty can fix engine damage, but he’s not a bloody miracle worker; he can only
+work so fast.
+
+\paragraph{Navigation} Responsible for setting a ship’s course direction,
+managing the ship’s internal representation of the map, and managing the
+engines.
+
+\paragraph{Communicatiosn} The communications service is independent of all
+other services except for the power service, and instead of managing some
+aspect of a ship, presents a team with a number of cryptography puzzles to be
+decrypted, solved, and posted back to the Score Keeper for validation.
+
+\paragraph{Weapons}
+
+\paragraph{Shields}
+
+\subsection{Game Day Results}
+\subsection{Problems and Solutions}
+
+\section{Comparing Scenarios}
+
+\section{The Next Ideal Solution}
+\subsection{Game Play}
+\subsection{Network}
+\subsection{Services}
+\subsection{Score Keeper}
+
+\section{Conclusion}
+
+\newpage
+\nocite{*}
+\section{Bibliography}
+
+\bibliographystyle{IEEEannot}
+
+\bibliography{finalpaper}
+
+\end{document}

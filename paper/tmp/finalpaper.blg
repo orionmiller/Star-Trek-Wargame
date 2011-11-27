@@ -1,0 +1,59 @@
+This is BibTeX, Version 0.99d (Web2C 2011)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: finalpaper.aux
+The style file: IEEEannot.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: finalpaper.bib
+-- IEEEtranS.bst version 1.11 (2003/04/02) by Michael Shell.
+-- http://www.ctan.org/tex-archive/macros/latex/contrib/supported/IEEEtran/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+** Sorting version - not for use with work to be submitted to the IEEE.
+Warning--empty note in Netflix
+
+Done.
+You've used 1 entry,
+            4480 wiz_defined-function locations,
+            882 strings with 8063 characters,
+and the built_in function-call counts, 490 in all, are:
+= -- 41
+> -- 7
+< -- 0
++ -- 3
+- -- 2
+* -- 37
+:= -- 115
+add.period$ -- 2
+call.type$ -- 1
+change.case$ -- 4
+chr.to.int$ -- 0
+cite$ -- 2
+duplicate$ -- 22
+empty$ -- 27
+format.name$ -- 2
+if$ -- 79
+int.to.chr$ -- 0
+int.to.str$ -- 1
+missing$ -- 4
+newline$ -- 26
+num.names$ -- 2
+pop$ -- 6
+preamble$ -- 1
+purify$ -- 3
+quote$ -- 2
+skip$ -- 29
+stack$ -- 0
+substring$ -- 6
+swap$ -- 16
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 6
+type$ -- 9
+warning$ -- 1
+while$ -- 2
+width$ -- 2
+write$ -- 30
+(There was 1 warning)
