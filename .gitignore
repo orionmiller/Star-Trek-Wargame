@@ -8,9 +8,13 @@
 # Temp / Swap Files #
 .*.swp
 *.*~
+tmp/
 
 # Compiled versions
 spwr
 snav
 seng
 scomms
+
+# Project Specific files
+.project
