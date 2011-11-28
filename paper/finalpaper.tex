@@ -96,12 +96,13 @@ The new game design was made to resemble a WarGame style of play consisting of
 only two teams each their own server to manage. We were even fortunate enough
 to provide both teams with their own rooms to work in together. Each team would
 initially receive the same source code of the services to fix and deploy on
-their servers. Their goal to find and patch the vulnerabilities in their code
-and exploit them in the other team. If a team could keep their services
-responding and pass basic functionality tests they would score points. However,
-if their services become unresponsive or failed the tests, whether their own
-fault or the opposing team, they would stop receiving points while the opposing
-team would score additional points.
+their servers (each a virtual machine running Ubuntu Server 11.10). Their goal
+to find and patch the vulnerabilities in their code and exploit them in the
+other team. If a team could keep their services responding and pass basic
+functionality tests they would score points. However, if their services become
+unresponsive or failed the tests, whether their own fault or the opposing team,
+they would stop receiving points while the opposing team would score additional
+points.
 
 We also wanted to give those participants with little or no hacking, or even
 coding, experience something entertaining and contributory to do. Since these
@@ -150,6 +151,13 @@ inputs from requests before calling the base functions. A diagram of the
 typical call stack is available in Diagram XX.XX. This is one way in which the
 players can patch vulnerabilities and design flaws.
 
+To communicate between and control other services, each service had a
+pre-defined packet structure mimicking an IP packet. Both Teams started off with
+the same structure but were allowed to add on to fulfill any future needs. The
+initial structure contained only enough feilds to control each specific command
+of a service. Any security or checksum features were left up to the participants
+to develope and deploy. 
+
 \paragraph{Power} The critical service of each ship responsible for managing and
 distributing a fixed amount of available ship power to all other running
 services. A service may only run while it has been allocated power. Should a
@@ -179,6 +187,28 @@ decrypted, solved, and posted back to the Score Keeper for validation.
 \paragraph{Shields}
 
 \subsection{Game Day Results}
+The competition started around noon on November 5th, 2011 with four participants
+and three of the services in production. These were the power, engines, and
+navigation services. The others had not yet been implemented, but were planned
+to be release some time at the end of the first day or during the start of the
+second day of competition.
+
+Over the next three or four hours both teams were still reading through the
+documentation and asking questions trying to figure out the structure of the
+game and the code. Very little code was actaully being written, but design flaws
+and vulnerabilities were slowly being realized. One or two members of Team A
+had previous experience in UNIX System Admnistration and immediately began
+setting up monitoring tools to track incomming requests and log the commands
+executed by each service. After which they moved their focus to the operating
+system running their services and attempted to ``secure'' it instead of their
+services. A few hours later and they abandoned this approach.
+
+Team B on the other hand, situated in the neighboring conference room decided to
+start by developing tools to help them manage the services. (The initial
+implementation provided no user friendly means to control a service. A member
+would have to format a packet, open a connection to the service, send the
+byte stream through the connection, and process any returned information.)
+
 \subsection{Problems and Solutions}
 
 \section{Comparing Scenarios}

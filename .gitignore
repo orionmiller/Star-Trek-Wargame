@@ -18,3 +18,10 @@ scomms
 
 # Project Specific files
 .project
+
+# LaTeX files
+*.aux
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
