@@ -375,7 +375,7 @@ we created. Servers in the first competition were unpatched Ubuntu Server 10.10
 instances with a number of open network services. Since this go around we didn't
 need things like PHP, Apache, MySQL, etc., a stripped down operating system
 capable of compiling code and running our network processes was ideal. After the
-initial configuration, users would not have sudo-er privileges or be able to
+initial configuration, users would not have sudoer privileges or be able to
 install new packages. 
 
 However, during our integration testing, we ran into a number of problems
@@ -394,17 +394,18 @@ privileges and without Apache, PHP, or MySQL installed.
 \subsection{Services}
 \subsection{Score Keeper}
 \subsection{Teaching and Timing}
-Security 101 sessions the quarter of the competition. \\ \\
-Advertise every week (in conjunction with the 101 sessions). \\ \\
+Security 101 sessions the quarter of the competition.
+Advertise every week (in conjunction with the 101 sessions).
 Reserve Bonderson rooms WELL in advance and confirm the reservation months in
-advance. \\ \\
-The end of week 6 in a quarter might be the ideal time to avoid conflicts with
-midterms. However, use best fit (least number of conflicts) when picking a date
-avoiding sporting events, club functions, holidays, midterms, etc., while
-knowing no weekend you chose is ever going to be perfect.\\ \\
+advance.
+Note, the end of week 6 in a quarter might be the ideal time to avoid
+conflicts with midterms. However, use best fit (least number of
+conflicts) when picking a date avoiding sporting events, club functions,
+holidays, midterms, etc., while knowing no weekend you chose is ever going to
+be perfect.
 No all nighters. You're mainly going to be thrashing and you'd rather be up all
 night during the competition rather than working on only a few hours of sleep
-and heading towards 56 hours without sleep.\\ \\
+and heading towards 56 hours without sleep.
 
 \section{Conclusion}
 
