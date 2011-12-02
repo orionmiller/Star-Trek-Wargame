@@ -388,23 +388,86 @@ privileges and without Apache, PHP, or MySQL installed.
 
 \section{Comparing Scenarios}
 
+
 \section{The Next Ideal Solution}
+
 \subsection{Game Play}
+
 \subsection{Network}
+
 \subsection{Services}
+
 \subsection{Score Keeper}
-\subsection{Teaching and Timing}
-Security 101 sessions the quarter of the competition. \\ \\
-Advertise every week (in conjunction with the 101 sessions). \\ \\
-Reserve Bonderson rooms WELL in advance and confirm the reservation months in
-advance. \\ \\
-The end of week 6 in a quarter might be the ideal time to avoid conflicts with
-midterms. However, use best fit (least number of conflicts) when picking a date
+
+\paragraph{Obfuscation}
+The score keeper needs to be hidden better. Internally within the files and externally
+as the score keeping server.
+
+\textit{Internally}
+Encrypted packing of the base functionallity. Would add extra prevention of people being
+able to reverse engineer the base functionality.
+
+\textit{Communication}
+We had encryption and some form of basic authentication by using a password.
+Needs to be better.
+
+\textit{Externally}
+Make your own virtual router to put your score keeper behind so that it makes it
+more difficult to directly connect tot he score keeper but also allows you to in a central
+point of score keeping see everything going on the network.
+%ghetto hackerz did this
+
+\paragraph{Scoring Metrics}
+If you can generate a flag capturing means of qualifying for points it is a bit easier
+[scenario one - scoring] however if the game play is similar to [game 2] then there
+needs to be a better metric than just checking the up times and down times of those machines.
+They definitly could be a factor in the score but shouldn't really be the majority fo the score.
+create a means of hacking the server having some form of potentially layered affect on their
+services so you can be more granulated or score and paussibly modify points for scoring
+offensively and defensively
+
+\subsection{Teaching, Advertisement and Timing}
+
+\paragraph{Teaching}
+Assuming the continued intent to varying skill level play and have an impact on the game
+providing workshops, infosessions etc. leading up to the competition will greatly help 
+improve the the average competetitors ability to effectively participate in the competition.
+
+\paragraph{Advertise}
+Spam Spam Spam and more Spam. Not literally but contininousely notify your prospective body
+of people you think will potentially show up the time date and location of the competition.
+Put of posters and flyers about 2 weeks before the competition date. Have  multiple
+department newsletters.
+
+\paragraph{Timing}
+Being on a quarter system there is no good time to host the competition. The end of week 6 
+in a quarter might be the ideal time to avoid conflicts with midterms. However, 
+use best fit (least number of conflicts) when picking a date knowing no weekend you chose is ever going to be perfect.
+
+
+\subsection{Suggestions}
+A small list of guidelines to follow.
+%Security 101 sessions the quarter of the competition. \\ \\
+\begin{itemize}
+\item Security workshops leading up to competition covering topics that are
+  needed to know before competing.
+\item Advertise every week (in conjunction with the 101 sessions).
+\item Reserve Bonderson rooms WELL in advance and confirm the reservation months in
+  advance.
+\item The end of week 6 in a quarter might be the ideal time to avoid conflicts with
+midterms. 
+\item However, use best fit (least number of conflicts) when picking a date
 avoiding sporting events, club functions, holidays, midterms, etc., while
 knowing no weekend you chose is ever going to be perfect.\\ \\
-No all nighters. You're mainly going to be thrashing and you'd rather be up all
+
+\item No all nighters. You're mainly going to be crashing and you'd rather be up all
 night during the competition rather than working on only a few hours of sleep
 and heading towards 56 hours without sleep.\\ \\
+
+\item Leave at least 2 full weeks before the start of the CTF to \textbf{finish} up
+  testing and documentation.
+
+\end{itemize}
 
 \section{Conclusion}
 
