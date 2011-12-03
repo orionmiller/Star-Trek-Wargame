@@ -64,37 +64,38 @@ in Las Vegas \cite{DEFCONCTF}. The format, theme, and scenario has changed over
 the years as the organizers change hands every few years. 
 
 \paragraph*{Educational CTFs} There are a few hacking CTFs designed specifically
-for the course laboratory setting. Georgia Tech's graduate course ECS 6612, Computer Network Security,
-created the NetSecLab, a six week team project which takes students with varying
-levels of Linux experience from basic the installation and configuration of a
-Linux operating system to securing and attacking common services
-\cite{NetSecLab}. Each team's server (also called a ``box'') typically runs six
-or seven standard services such as ssh, HTTP, telnet, and MySQL
+for the course laboratory setting. Georgia Tech's graduate course ECS 6612,
+Computer Network Security, created the NetSecLab: a six week team project
+taking students with varying levels of Linux experience from the installation
+and configuration of an operating system, to securing and attacking common
+services \cite{NetSecLab}. Each team's server (also called a ``box'') typically
+runs six or seven standard services such as ssh, HTTP, telnet, and MySQL
 \cite{NetSecLab}. In addition to attacking other team's boxes, there are a few
 ``victim boxes'' running different versions of Redhat or Windows XP SP1 with
 seeded vulnerabilities for teams to search for and exploit \cite{NetSecLab}.
 Teams score points gaining access to other boxes, retrieving hash files, and
 mapping the network and services \cite{NetSecLab}. Points are lost when you box
-is compromised \cite{NetSecLab}. The NetSecLab is one of the more typical
-hacker CTFs modified to work in classroom settings on students with little
-hacking experience. Competitions can become quite advanced as the experience
-level increases as seen at UC Santa Barbara International CTF.
+is compromised \cite{NetSecLab}. The NetSecLab is one of the more typical hacke
+CTFs modified to work in classroom settings on students with little hacking
+experience. Competitions can become quite advanced as the experience level
+increases as seen at UC Santa Barbara International CTF.
 
-Pimenidis \cite{HostingHackingChallenge} describes how he's setup some CTFs in
-the past and provides a good outline for those starting their first
-competitions. Much like the creators of the NetSecLab, Pimenidis notes the rules
-should be such to maximize learning and limit participants from destroying the
-game when designing competitions for inexperienced players or in educational
-settings. He also presents a ``cookbook for custom services'' which offers some
-design advice and pitfalls to avoid that we will be able to apply in one of our
-scenarios \cite{HostingHackingChallenge}.
+Lexi Pimenidis describes how he's setup some CTFs in the past
+\cite{HostingHackingChallenge} and provides a good outline for those starting
+their first competitions. Much like the creators of the NetSecLab, Pimenidis
+notes the rules should be such to maximize learning and limit participants from
+destroying the game when designing competitions for inexperienced players or in
+educational settings. He also presents a ``cookbook for custom services'' which
+offers some design advice and pitfalls to avoid that we will be able to apply
+in one of our scenarios \cite{HostingHackingChallenge}.
 
-\paragraph*{International CTF} Starting almost a decade ago, UC Santa Barbara's
-Annual International Capture the Flag competition has expanded from a few dozen universities participating to
-nearly 70 and cash prizes \cite{2010iCTF}. Scenarios have ranged from hacking
-into an open source version of Windows \cite{UCSBWindows}, to fighting the rogue
-cybercrime supporting nation of Litya \cite{2010iCTF}. It's one of the more
-advanced and creative CTFs we've been able to find and is our long term goal. 
+\paragraph*{International CTF} Starting nearly a decade ago, UC Santa Barbara's
+annual International Capture the Flag competition has expanded from a few dozen
+universities participating to nearly 70 groups competing for cash prizes
+\cite{2010iCTF}. Scenarios have ranged from hacking into an open source version
+of Windows \cite{UCSBWindows}, to fighting the rogue cybercrime supporting
+nation of Litya \cite{2010iCTF}. It's one of the more advanced and creative CTFs
+we've been able to find and is our long term goal.
 
 \paragraph*{Typed CTFs} Conti and Babbitt
 \cite{HackingCompetitionsForSecurityEducation} detail a number of other types
@@ -182,7 +183,7 @@ the game):
 \subsubsection{Score Keeping}
 
 \subsubsection{Network}
-Our originally design called for each team to be on their own VLAN to prevent
+Our design originally called for each team to be on their own VLAN to prevent
 teams from attacking each other (and possibly their personal computers). A
 network diagram is show in Figure ~\ref{fig:dukeNetworkDiagram}. The pseudo
 company's web server would be on all assigned VLANs so all teams have access.
@@ -255,10 +256,10 @@ and they were able to capture a few additional flags. When one of the more
 experienced teams was informed they missed the other servers, they reported a
 tool they used to find hidden content in images was reporting the strong
 likelihood of a message on one of the web pages. They had spent considerable
-time attempting to extract the message and find capture the flag. Upon our
-further investigation, it was discovered the image they were working on was not
-one of our seeded plants. Instead it was one of the stock images we used from
-the original website we copied.
+time and resources attempting to extract the message and capture the flag. Upon
+our further investigation, it was discovered the image they were working on was
+not one of our seeded plants. Instead it was one of the stock images we used
+from the original website we copied.
 
 \subsection{Problems and Solutions}
 \paragraph*{rm * -rf} As described in the \textbf{Game Day Results},
@@ -272,7 +273,7 @@ use.
 
 \paragraph*{Free Virtual Machine Servers} The server we were using to manage our
 virtual machines was free and thus limited in the scale of available features.
-Recall our originally plans called for a network setup such that the company's
+Recall originally our plans called for a network setup such that the company's
 Web server was on all VLANs in the network (see Figure
 ~\ref{fig:dukeNukemIntranetDiagram}). The limited feature set of our Virtual
 Machine server did not include the ability to setup network cards for use with
@@ -296,7 +297,7 @@ with before.
 
 \section{The Star Trek Scenario}
 \subsection{Objectives}
-After the first CTF competition, we wanted to make out next focus to be on
+After the first CTF competition, we wanted to make our next focus to be on
 solving two problems:
 \begin{itemize}
 	\item testing the individual's coding and hacking skills rather than their
@@ -311,19 +312,21 @@ images. Additionally, by designing new services from the ground up we can
 give participants experience with the common cause of vulnerabilities: poor
 design.
 
-The first scenario was good for getting the uninitiated starting in security,
-however, it did lack defense objectives. While the first scenario focused mainly
-on attacking servers and their services, we needed to even the importance of
-defending to better align the game with a real world scenario.
+Our first scenario was good for getting the uninitiated starting in security,
+however, it did lack defensive objectives. While the first scenario focused
+mainly on attacking servers and their services, we needed to even the importance
+of defending to better align the game with a real world scenario.
 
 Lastly, players of the first competition noted in their feedback they wanted
 more teamwork based cooperation. Specifically, those with little to no security
 experience had a tough time working out the solutions and would have liked to
-work with others outside of their team to  strategize and learn techniques.
-Team formation in the second competition needed to move away from the standard
-method by which those who know each other tightly group together thus
-separating those who know from those who don't. This method tends to create
-groups with varying experience and a hording of knowledge.
+work with others outside of their team to strategize and learn techniques. The
+standard method of team formation usually results in those who know each other
+and have similar expertise tightly grouping together. This tends to vary
+experience by groups rather than the individuals in the group and creates a
+hording of knowledge in which the less experienced gain little from
+participating. For this scenario, we wanted to move away from this particular
+method.
 
 \subsection{Design}
 \label{stdesign}
@@ -357,6 +360,8 @@ coding) experience something entertaining and contributory to do. Since these
 services should be fully functional and collectively represent a star ship, then
 it stands those who feel they can't ``hack" could fly the ship around and
 score points for their team by shooting the other team's ship.
+
+
 
 \subsubsection{Score Keeping}
 \label{stscorekeeping}
