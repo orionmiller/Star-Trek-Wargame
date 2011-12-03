@@ -4,6 +4,8 @@
 \usepackage{ulem}
 \usepackage{geometry}
 \usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{epsfig}
 \usepackage{float}
 \floatstyle{boxed} 
 \restylefloat{figure}
@@ -45,13 +47,13 @@ Abstract
 \newpage
 \setcounter{page}{1}
 
-\section{A \textit{Hacker} Capture the Flag Compeition}
+\section{A \textit{Hacker} Capture the Flag Competition}
 The idea of a \textit{Hacker} Capture the Flag (CTF) competition plays off of
 the traditional child's version. A hacker CTF has a number of different versions
 with the most typical employing a number of servers to ``challenge participants
-to attack and defend computing resources while sovling complex technical
+to attack and defend computing resources while solving complex technical
 problems'' \cite{HackingCompetitionsForSecurityEducation}. In a university
-setting a CTF provides a great oportunity ``to teach devensive and offensive
+setting a CTF provides a great opportunity ``to teach defensive and offensive
 IT-security in a somewhat more realistic environment than the traditional
 classroom'' \cite{HostingHackingChallenge}. Cal Poly's ``Learn By Doing'' motto
 provides a good platform for us to apply and expand our security knowledge
@@ -59,9 +61,9 @@ without mounds of textbooks.
 
 \paragraph*{DEF CON} The more know competition is the annual DEF CON CTF
 in Las Vegas \cite{DEFCONCTF}. The format, theme, and scenario has changed over
-the years as the orgainizers change hads every few years. 
+the years as the organizers change hands every few years. 
 
-\paragraph*{Educational CTFs} There are a few hacking CTFs dsigned specifically
+\paragraph*{Educational CTFs} There are a few hacking CTFs designed specifically
 for the course laboratory setting. Georgia Tech's graduate course ECS 6612, Computer Network Security,
 created the NetSecLab, a six week team project which takes students with varying
 levels of Linux experience from basic the installation and configuration of a
@@ -69,7 +71,7 @@ Linux operating system to securing and attacking common services
 \cite{NetSecLab}. Each team's server (also called a ``box'') typically runs six
 or seven standard services such as ssh, HTTP, telnet, and MySQL
 \cite{NetSecLab}. In addition to attacking other team's boxes, there are a few
-``victim boxes'' runing different versions of Redhat or Windows XP SP1 with
+``victim boxes'' running different versions of Redhat or Windows XP SP1 with
 seeded vulnerabilities for teams to search for and exploit \cite{NetSecLab}.
 Teams score points gaining access to other boxes, retrieving hash files, and
 mapping the network and services \cite{NetSecLab}. Points are lost when you box
@@ -88,7 +90,7 @@ design advice and pitfalls to avoid that we will be able to apply in one of our
 scenarios \cite{HostingHackingChallenge}.
 
 \paragraph*{International CTF} Starting almost a decade ago, UC Santa Barbara's
-Annual International Capture the Flag competition has expanded from a few dozen universities particpating to
+Annual International Capture the Flag competition has expanded from a few dozen universities participating to
 nearly 70 and cash prizes \cite{2010iCTF}. Scenarios have ranged from hacking
 into an open source version of Windows \cite{UCSBWindows}, to fighting the rogue
 cybercrime supporting nation of Litya \cite{2010iCTF}. It's one of the more
@@ -99,7 +101,7 @@ advanced and creative CTFs we've been able to find and is our long term goal.
 of CTFs ranging from wireless to cryptanalysis, and hardware hacking to social
 engineering.
 
-\paragraph*{Web Based} Lastly, there are even hacking competitions
+\paragraph*{Hacking Olympics} Lastly, there are even hacking competitions
 (\cite{Cipher}, \cite{SMPCTF}) which don't require servers for participants to
 attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
@@ -108,9 +110,189 @@ independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{The Duke Nukem Scenario}
 \subsection{Objectives}
+
+
 \subsection{Design}
+
+\subsubsection{Game Play}
+
+\subsubsection{Tasks}
+The planned exploits and seeded flags for each of the servers is listed and
+described below (note not all of the exploits were implemented by the start of
+the game):
+
+\begin{enumerate}
+  \item Web Server
+      \begin{itemize}
+        \item \textbf{Octobrain} - The first exploit to find. A PHP web page
+        used the \textit{system()} function to send user input to
+        \textit{cowsay}. With no input sanitation, users would be able to
+        execute other command on the system. A simple listing of the current
+        directory would list the file ``FLAG.txt'' which contained the first
+        flag.
+        \item \textbf{Octobrain PHP} - Using the same exploit as above, another
+        file named ``FLAG.php'' also contained another flag. However, users
+        needed to know how PHP is interpreted by the browser and note they
+        couldn't get the flag using \textit{cat}.
+        \item \textbf{Bad Employee Email Password} - The web server also had a
+        link to the employee's webmail login (a feature to allow employees to
+        get their email while not in the office). Reading through a series of
+        bio pages for each of the Duke Nukem developer team members, one would
+        be able to find enough information to guess one particular employee's
+        email password.
+        \item \textbf{Plain Text Reset Passwords} - A new intern was hired to
+        work in the Human Resource Department. She's a little ditzy and forgot
+        her password and needed it reset. The new password was emailed to her in
+        plain text.
+        \item \textbf{Steganography} - Three images available in plain sight on
+        the web page contained hidden flags. One of the images had slight
+        distortions and a simple search for ``FLAG'' would find the flag id.
+        The flag hidden in the other image was broken up and needed to be pieced
+        together. The last image contained a hidden RAR compressed file which
+        needed to be extracted in order to discover the flag.        
+      \end{itemize}
+  \item Human Resources
+      \begin{itemize}
+        \item \textbf{John Flagstaff} - Poorly designed database security has
+        left all personal employee information in plan text in the database. To
+        gain access to the database, players would have to find a reset password
+        emailed to an employee in plain text that was never changed. The flag
+        was listed under the employee John Flagstaff's social security number.
+        \item \textbf{Steganography} - Another flag hidden in a mass of shared
+        Human Resource files.        
+      \end{itemize}
+  \item FTP Server - Represents an FTP server for the Developer team to store
+  their current iterations of the game.
+      \begin{itemize}
+        \item \textbf{Steganography} - A flag was hidden in one of the saved
+        beta versions of the Duke Nukem game.
+        \item \textbf{Encrypted Game Image} - A flag was hidden in an encrypted
+        beta version of the game.
+      \end{itemize}
+   \item Dummy Box - Contains no useful company information or documents, but
+   offers a space for a few extra hacking challenges
+      \begin{itemize}
+        \item \textbf{High Port Telnet} - A quick port scan revealed a telnet
+        server running which when connected to would reveal a flag.
+        \item \textbf{Packet Sniffing} - Periodic packets being sent out could
+        be picked up to reveal a flag.
+      \end{itemize}
+\end{enumerate}
+
+\subsubsection{Score Keeping}
+
+\subsubsection{Network}
+Our originally design called for each team to be on their own VLAN to prevent
+teams from attacking each other (and possibly their personal computers). A
+network diagram is show in Figure ~\ref{fig:dukeNetworkDiagram}. The pseudo
+company's web server would be on all assigned VLANs so all teams have access.
+
+Each server within the pseudo company would be on two networks (see Figure
+~\ref{fig:dukeNukemIntranetDiagram}). One to act as a company intranet, and the
+other for use by the Game Master. Access to the Game Master network was
+restricted and participants told not to interfere with the network (whenever
+they happened upon it). Both internal game networks were a simple shared virtual
+bridge between all virtual machine instances.
+
+To prevent hazards on our network from leaking out onto the external Cal Poly
+network, the physical connection between the two was removed. Thus, anyone
+participating and connected to our network would not have Internet access. They
+were advised to either download and bring any tools they might need before hand,
+or safely use the campus WiFi network.
+
+\begin{figure}[here]
+\includegraphics[scale=.50]{resources/dukenukem_network_diagram.eps}
+\caption{A planned network diagram for the Duke Nukem CTF Scenario. Note: as
+described in the problems and solutions sections, the planned network setup
+did not end up including any of the described VLANs and the network connection
+out of the lab was physically removed.}
+\label{fig:dukeNetworkDiagram}
+\end{figure}
+
+\begin{figure}[here]
+\includegraphics[scale=.75]{resources/dukenukem_intranet_diagram.eps}
+\caption{A network diagram for the pseudo company's Intranet and Game Master
+network.}
+\label{fig:dukeNukemIntranetDiagram}
+\end{figure}
+
 \subsection{Game Day Results}
+Competition began on May 22nd, 2011 at 10:00 a.m. with approximately 20 people
+participating throughout the day. About a dozen people stayed for 10 hours until
+7 p.m. when we called the game. 
+
+Many of the participants had been regular attendees of our Security 101 sessions
+and were able to find many of the flags directly related to the subjects we
+covered. Groups were originally limited to at most three people, but as the
+easier flags were all discovered participants began complaining about not
+finding anything else. A few hinted that outside of the Security 101 sessions
+they were very inexperienced and would like to join with the other groups
+finding some of the harder flags to learn their techniques. After which, we
+allowed the teams to grow to however large they liked.
+
+There were two teams with experienced players and in each team someone with a
+BackTrack Live CD. Since our servers were unpatched Ubuntu 10.10 installations,
+they were able to use the automated tools supplied in BackTrack to exploit
+known issues with Apache, MySQL, and PHP. These were not the intended attack
+vectors. Even though they were able to get a root shell, they weren't able to do
+much more. Eventually they realized they wouldn't be able to score any points
+for their team and backed off. 
+
+The competition was fraught with a number of issues at the beginning. We had not
+restricted user access to some potentially destructive commands or sensitive
+folders. For instance, an exploit which allowed participants to gain shell
+access also allowed them to delete every file in the web directory or emptying
+files by rewriting to them. In another instance, users were allowed to create
+massive files in the \textit{tmp} directory. The virtual machine was limited to
+15 Gigabytes of hard-drive space and eventually the \textbf{tmp} folder grew so
+large it prevented anyone else from downloading script they'd written to help
+them find flags. Eventually, the entire virtual machine was unusable and needed
+to be re-imaged.
+
+By the end of the competition, only one team realized there were other servers
+in the network (even though they were informed at the start of the competition)
+and they were able to capture a few additional flags. When one of the more
+experienced teams was informed they missed the other servers, they reported a
+tool they used to find hidden content in images was reporting the strong
+likelihood of a message on one of the web pages. They had spent considerable
+time attempting to extract the message and find capture the flag. Upon our
+further investigation, it was discovered the image they were working on was not
+one of our seeded plants. Instead it was one of the stock images we used from
+the original website we copied.
+
 \subsection{Problems and Solutions}
+\paragraph*{rm * -rf} As described in the \textbf{Game Day Results},
+a few individuals were able to shut down the game by attacking the server
+instead of finding the flags.
+
+We were able to prevent the removal of files in the web directory by resetting
+access to the files and directories. We still wanted them to be able to create
+files to download their scripts, so we left one temporary folder open for them to
+use. 
+
+\paragraph*{Free Virtual Machine Servers} The server we were using to manage our
+virtual machines was free and thus limited in the scale of available features.
+Recall our originally plans called for a network setup such that the company's
+Web server was on all VLANs in the network (see Figure
+~\ref{fig:dukeNukemIntranetDiagram}). The limited feature set of our Virtual
+Machine server did not include the ability to setup network cards for use with
+VLANs. 
+
+After two weeks of research and troubleshooting, we were not able to find a
+suitable solution and instead did away with all of the VLAN requirements.
+Additionally, we asked all participants to not attack each other's machines and
+backup their data or use a Live CD if they were worried about breaking their
+machines.
+
+\paragraph*{BackTrack} One of our objectives was to test competitor's hacking
+knowledge and abilities and not their ability to use pre-built scripts and
+tools. Finding exploits in the services was not within the scope of this
+competition. 
+
+To prevent the use of tools which do all of the ``hacking'' for you, we decided
+to change the design of the next CTF to the point they wouldn't be able to use
+something like BackTrack by building our own services no one had ever worked
+with before. 
 
 \section{The Star Trek Scenario}
 \subsection{Objectives}
@@ -137,7 +319,7 @@ defending to better align the game with a real world scenario.
 Lastly, players of the first competition noted in their feedback they wanted
 more teamwork based cooperation. Specifically, those with little to no security
 experience had a tough time working out the solutions and would have liked to
-work with others outside of their team to  stratigize and learn techniques.
+work with others outside of their team to  strategize and learn techniques.
 Team formation in the second competition needed to move away from the standard
 method by which those who know each other tightly group together thus
 separating those who know from those who don't. This method tends to create
@@ -198,17 +380,17 @@ made designs. Base implementation of a service is only responsible for:
 \begin{itemize}
     \item providing only the most basic level of support and implementation
     necessary for the service to run, 
-    \item seting up the network support required for running the service,
+    \item setting up the network support required for running the service,
     \item listing on an assigned port, accept incoming connections, and pass on
     the connection to a handler which processes the incoming data,
-    \item runing base functionality tests on the competitor's implementation and
+    \item running base functionality tests on the competitor's implementation and
     pass on the results to the Score Keeper for scoring,
     \item and keeping a modest amount of internal book keeping specific to the
     service to ensure the honesty of a competitor's implementation.
 \end{itemize}
 
 While the exact functions for each service differ, every service's base
-implementation has functions (defined as externalls in header files)
+implementation has functions (defined as externals in header files)
 for the competitor's code to call before finishing processing an incoming
 request. For each of a service's base function, there is a corresponding
 competitor's wrapper function to be called before the equivalent base function.
@@ -276,7 +458,7 @@ extern struct PowerFuncs {
    int (*wadd_power) (int, int);
 } pow_funcs;
 \end{verbatim}
-\caption{A 0 of the provided header file for the Power service. It
+\caption{A snippet of the provided header file for the Power service. It
 describes the structure and use of the wrapper functions as well as
 demonstrating the data flow of incoming requests.}
 \label{fig:wraperStructEx}
@@ -455,7 +637,7 @@ and \textbf{Bad Tests}), we were not able to solve the problem and instead
 switched to fully patched Ubuntu Server 11.10 instances with no sudo-er
 privileges and without Apache, PHP, or MySQL installed. 
 
-\section{Comparing Scenarios}
+\section{Scenario Analysis}
 
 
 \section{The Next Ideal Solution}
@@ -478,19 +660,19 @@ for the design of long term (e.g. Quarter Long) CTFs.
 \subsection{Services}
 
 \paragraph{Visualization}
-Pausibly add some form of graphical frontend end to game. Creating a merge between
+Possibly add some form of graphical front-end end to game. Creating a merge between
 a hacking competition and video game. This would be used to help encourage new players
 to get involved with future CTFs or security.
 
 \paragraph{Library}
-Create librarys to make it easier to create new services. Possibly make a generice base
+Create libraries to make it easier to create new services. Possibly make a generic base
 functionality. This way it can be easier to create new services and so more time can
 be spent on adding depth to the functionality of the service.
 
 \paragraph{Game Time Compile and Submit}
 Add a way for players to automatically compile their code and the snapshot of that code
-to the a repository. This would allow for a post game analysis of code. Possilby using
-code Covarity [eric's paper] to see how rebust the code is and compare it to scores
+to the a repository. This would allow for a post game analysis of code. Possibly using
+code Covarity [eric's paper] to see how robust the code is and compare it to scores
 that team received.
 
 \subsection{Score Keeper}
@@ -500,7 +682,7 @@ The score keeper needs to be hidden better. Internally within the files and exte
 as the score keeping server.
 
 \textit{Internally}
-Encrypted packing of the base functionallity. Would add extra prevention of people being
+Encrypted packing of the base functionality. Would add extra prevention of people being
 able to reverse engineer the base functionality.
 
 \textit{Communication}
@@ -517,51 +699,47 @@ point of score keeping see everything going on the network.
 If you can generate a flag capturing means of qualifying for points it is a bit easier
 [scenario one - scoring] however if the game play is similar to [game 2] then there
 needs to be a better metric than just checking the up times and down times of those machines.
-They definitly could be a factor in the score but shouldn't really be the majority fo the score.
+They definitely could be a factor in the score but shouldn't really be the majority of the score.
 create a means of hacking the server having some form of potentially layered affect on their
-services so you can be more granulated or score and paussibly modify points for scoring
+services so you can be more granulated or score and possibly modify points for scoring
 offensively and defensively
 
-\subsection{Teaching, Advertisement and Timing}
-
-\paragraph{Teaching}
-Assuming the continued intent to varying skill level play and have an impact on
-the game providing workshops, infosessions etc. leading up to the competition
-will greatly help improve the the average competetitors ability to effectively
-participate in the competition.
-
-\paragraph{Advertise}
-Spam Spam Spam and more Spam. Not literally but contininousely notify your
-prospective body of people you think will potentially show up the time date and
-location of the competition. Put of posters and flyers about 2 weeks before the
-competition date. Have multiple department newsletters.
-
-\paragraph{Timing}
-Being on a quarter system there is no good time to host the competition. The
-end of week 6 in a quarter might be the ideal time to avoid conflicts with
-midterms. However, use best fit (least number of conflicts) when picking a date
-knowing no weekend you chose is ever going to be perfect.
-
-
-\section{Suggestions And Things to Avoid}
-A small list of guidelines to follow.
-%Security 101 sessions the quarter of the competition. \\ \\
+\section{Other Suggestions And Things to Avoid}
+For things specific to our and possible future CTFs at Cal Poly, the following
+is a list of suggestions and things which should be avoided that may not have
+been covered in a previous section or are important enough to be reiterated:
 \begin{itemize}
-    \item Security workshops leading up to competition covering topics that are
-    needed to know before competing.
-    \item Advertise every week (in conjunction with the 101 sessions).
-    \item Reserve Bonderson rooms WELL in advance and confirm the reservation
-    months in advance.
-    \item The end of week 6 in a quarter might be the ideal time to avoid
-    conflicts with midterms.
-    \item However, use best fit (least number of conflicts) when picking a date
-    avoiding sporting events, club functions, holidays, midterms, etc., while
-    knowing no weekend you chose is ever going to be perfect.
-    \item No all nighters. You're mainly going to be crashing and you'd rather
-    be up all night during the competition rather than working on only a few
-    hours of sleep and heading towards 56 hours without sleep.
-    \item Leave at least 2 full weeks before the start of the CTF to
-    \textbf{finish} up testing and documentation.
+    \item \textbf{Teaching} The competitions held in the immediate future should
+    be expected to still have a large base of limited experience participants.
+    Thus, the security workshop series should continue leading up to competition
+    to cover topics which may appear in the scenario. It should not only help
+    increase the number of participants, but also increase the level of play,
+    enjoyment, and learning through the competition.
+    \item \textbf{Advertise} Get competition details out every week (usually in
+    conjunction with the 101 sessions). Be sure to get into the various
+    department mailing lists (CSC, CPE, etc.). Posters should be up no later
+    than two weeks prior to the competition.
+    \item \textbf{No Experience Necessary?} We've tried using it in while
+    advertising for both competitions, but no matter what, it didn't seem to
+    help get the crowds we expected. There may be varying understandings of the
+    phrase, but something along the same lines should stressed to those warry
+    to participate.
+    \item \textbf{Room Reservations} Reserve Bonderson rooms WELL in advance and
+    confirm the reservation at least a month out. Don't forget to double check
+    who has card swipe access.
+    \item \textbf{Timing} Being on a quarter system presents a number of
+    difficulties while selecting a date to host the competition. We found the end
+    of week six might be the ideal time to avoid conflicts with midterms.
+    However, use best fit (least number of conflicts) when picking a date
+    knowing no weekend you chose is ever going to be perfect. Mind the holiday
+    weekends, midterms, sporting events, or other club functions.
+    \item \textbf{No all nighters}. It should go without saying. You're mainly
+    going to be crashing and you'd rather be up all night during the
+    competition rather than working on only a few hours of sleep and heading
+    towards 56 hours without sleep.
+    \item \textbf{Documentation} You're probably going to writing a report
+    (maybe even one like this) and documenting before you begin work (ideally)
+    or while you're working will greatly help in the future.
 \end{itemize}
 
 \section{Conclusion}
