@@ -121,14 +121,38 @@ attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{Objectives}
+Out of a lack of security classes and security focus apart of the Computer science
+department, we wanted host two CTFS to
+
+\begin{itemize}
+\item Generate an interest on campus for security and hacker capture the flags
+\item Provide a fun way  of hacking and security concepts and skills to our peers
+\item See if there were other students interested in hacker capture the flags
+\item Create CTFs that allow a wide range of skill levels to participate
+\end{itemize}
+
+Additional benefits of the creating and hosting Hacker CTFs make use of the new
+Security Lab on campus and help develop a Hacker / Security culture with White
+Hat (i.e. School Hacking and Cyber-Security Club).
 
 \section{The Duke Nukem Scenario}
-\subsection{Objectives}
 
+\subsection{Objectives}
+Since this was our first CTF we wanted and because the lack of cyber security
+skills on campus we felt that putting an emphasis on a wide array of challenges
+would increase participation and allow for newcomers to have a good chance of 
+having a good chance of doing well on game day.
+
+% Security 101
+% Flags
 
 \subsection{Design}
 
 \subsubsection{Game Play}
+% Prevent Linear Progression
+% Wide Variety of Tasks
+% Obvious Flags
+
 
 \subsubsection{Tasks}
 The planned exploits and seeded flags for each of the servers is listed and
@@ -222,6 +246,7 @@ did not end up including any of the described VLANs and the network connection
 out of the lab was physically removed.}
 \label{fig:dukeNetworkDiagram}
 \end{figure}
+
 
 \begin{figure}[here]
 \includegraphics[scale=.75]{resources/dukenukem_intranet_diagram.eps}
@@ -382,25 +407,25 @@ automatically assigned to the oposing team assigned to the person before them.
 Since the game play was more complex than just doing tasks and getting scoring
 for a flag. To have some form of live understanding the how the game is being
 played to create a scoring metric to have a winner/score. Plus they had
-admin acess to their server and would have acess to source code and be compiling
+admin access to their server and would have acess to source code and be compiling
 their service.
 
-%Objectives
-\paragraph{Objectives}
 We needed the score keeping to be more difficult to break than to play the game 
 within the time frame of the game. To do this we needed to make the score keeper
 as invisible as possible for the server and the score keeping partialy handled with
 the base funcitonality given to the players to compile their service. [ see base 
 functionality]. Also need to prevent the ability to spoof traffic.
 
+\paragraph{Scoring Schemes}
 Our Metric for scores.
-Uptime
+Up-Time
 Main reason to main part of the scoring for the hacking side of the game.
 
 Damage Dealt [were not fully functional during game]
 Comms - Encryption Challenges - [ available for the game]
 Both exist to add the possible other challenges to broden the interest for the game.
 
+\paragraph{Score Keeping}
 Reasons for internal.
 Since they can modify their code completely. We need some way on their side of
 in check and making sure their service was keeping some form of base functionality.
@@ -413,7 +438,7 @@ This communicates witht he internal functionality checking.
 Two main parts of the score keeping the base functionality within a service and
 the VM / server designated to doing.
 
-Base Functoinality 
+Base Functionality 
 Check to state of the service.
 If it passed it would report to the score keeper that that service is good.
 If it failed it would report that the service did not meet base functionality would
