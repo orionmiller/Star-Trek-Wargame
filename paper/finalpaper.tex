@@ -365,6 +365,48 @@ score points for their team by shooting the other team's ship.
 
 \subsubsection{Score Keeping}
 \label{stscorekeeping}
+Since the game play was more complex than just doing tasks and getting scoring
+for a flag. To have some form of live understanding the how the game is being
+played to create a scoring metric to have a winner/score. Plus they had
+admin acess to their server and would have acess to source code and be compiling
+their service.
+
+%Objectives
+\paragraph{Objectives}
+We needed the score keeping to be more difficult to break than to play the game 
+within the time frame of the game. To do this we needed to make the score keeper
+as invisible as possible for the server and the score keeping partialy handled with
+the base funcitonality given to the players to compile their service. [ see base 
+functionality]. Also need to prevent the ability to spoof traffic.
+
+Our Metric for scores.
+Uptime
+Main reason to main part of the scoring for the hacking side of the game.
+
+Damage Dealt [were not fully functional during game]
+Comms - Encryption Challenges - [ available for the game]
+Both exist to add the possible other challenges to broden the interest for the game.
+
+Reasons for internal.
+Since they can modify their code completely. We need some way on their side of
+in check and making sure their service was keeping some form of base functionality.
+
+External
+Allows us to manage the scores and have other game play scoring aspects to the game.
+This communicates witht he internal functionality checking.
+
+%Implementations
+Two main parts of the score keeping the base functionality within a service and
+the VM / server designated to doing.
+
+Base Functoinality 
+Check to state of the service.
+If it passed it would report to the score keeper that that service is good.
+If it failed it would report that the service did not meet base functionality would
+be reported to the score keeper.
+If the service was off then it would not be able to notify the remote server at all
+that the service was up and the score keeper server would default tot the service
+being off.
 
 \subsubsection{Services}
 \label{stservices}
