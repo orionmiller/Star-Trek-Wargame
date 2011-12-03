@@ -45,7 +45,64 @@ Abstract
 \newpage
 \setcounter{page}{1}
 
-\section{Research of other CTFs}
+\section{A \textit{Hacker} Capture the Flag Compeition}
+The idea of a \textit{Hacker} Capture the Flag (CTF) competition plays off of
+the traditional child's version. A hacker CTF has a number of different versions
+with the most typical employing a number of servers to ``challenge participants
+to attack and defend computing resources while sovling complex technical
+problems'' \cite{HackingCompetitionsForSecurityEducation}. In a university
+setting a CTF provides a great oportunity ``to teach devensive and offensive
+IT-security in a somewhat more realistic environment than the traditional
+classroom'' \cite{HostingHackingChallenge}. Cal Poly's ``Learn By Doing'' motto
+provides a good platform for us to apply and expand our security knowledge
+without mounds of textbooks.
+
+\paragraph*{DEF CON} The more know competition is the annual DEF CON CTF
+in Las Vegas \cite{DEFCONCTF}. The format, theme, and scenario has changed over
+the years as the orgainizers change hads every few years. 
+
+\paragraph*{Educational CTFs} There are a few hacking CTFs dsigned specifically
+for the course laboratory setting. Georgia Tech's graduate course ECS 6612, Computer Network Security,
+created the NetSecLab, a six week team project which takes students with varying
+levels of Linux experience from basic the installation and configuration of a
+Linux operating system to securing and attacking common services
+\cite{NetSecLab}. Each team's server (also called a ``box'') typically runs six
+or seven standard services such as ssh, HTTP, telnet, and MySQL
+\cite{NetSecLab}. In addition to attacking other team's boxes, there are a few
+``victim boxes'' runing different versions of Redhat or Windows XP SP1 with
+seeded vulnerabilities for teams to search for and exploit \cite{NetSecLab}.
+Teams score points gaining access to other boxes, retrieving hash files, and
+mapping the network and services \cite{NetSecLab}. Points are lost when you box
+is compromised \cite{NetSecLab}. The NetSecLab is one of the more typical
+hacker CTFs modified to work in classroom settings on students with little
+hacking experience. Competitions can become quite advanced as the experience
+level increases as seen at UC Santa Barbara International CTF.
+
+Pimenidis \cite{HostingHackingChallenge} describes how he's setup some CTFs in
+the past and provides a good outline for those starting their first
+competitions. Much like the creators of the NetSecLab, Pimenidis notes the rules
+should be such to maximize learning and limit participants from destroying the
+game when designing competitions for inexperienced players or in educational
+settings. He also presents a ``cookbook for custom services'' which offers some
+design advice and pitfalls to avoid that we will be able to apply in one of our
+scenarios \cite{HostingHackingChallenge}.
+
+\paragraph*{International CTF} Starting almost a decade ago, UC Santa Barbara's
+Annual International Capture the Flag competition has expanded from a few dozen universities particpating to
+nearly 70 and cash prizes \cite{2010iCTF}. Scenarios have ranged from hacking
+into an open source version of Windows \cite{UCSBWindows}, to fighting the rogue
+cybercrime supporting nation of Litya \cite{2010iCTF}. It's one of the more
+advanced and creative CTFs we've been able to find and is our long term goal. 
+
+\paragraph*{Typed CTFs} Conti and Babbitt
+\cite{HackingCompetitionsForSecurityEducation} detail a number of other types
+of CTFs ranging from wireless to cryptanalysis, and hardware hacking to social
+engineering.
+
+\paragraph*{Web Based} Lastly, there are even hacking competitions
+(\cite{Cipher}, \cite{SMPCTF}) which don't require servers for participants to
+attack and defend. Instead they offer a web based CTF with a number of
+independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{Objectives}
 
@@ -57,30 +114,31 @@ Abstract
 
 \section{The Star Trek Scenario}
 \subsection{Objectives}
-After the first CTF competition, we wanted to make the next CTF focus mainly on
+After the first CTF competition, we wanted to make out next focus to be on
 solving two problems:
 \begin{itemize}
 	\item testing the individual's coding and hacking skills rather than their
-	\item ability to find and use pre-built tools and prevent the participants
-	from breaking the servers (rather than the services) and ruining the game.
+	ability to find and use pre-built tools,
+	\item and prevent the participants from breaking the servers (rather than the
+	services) and ruining the game.
 \end{itemize}
 
 These would not only improve the overall game play and enjoyment, but would
-help eliminate game town time spent repairing and restoring the virtual machine
-server's images. Additionally, by designing new services from the ground up we
-can demonstrate to participants and give them experience with the common cause
-of vulnerabilities: poor design.
+help eliminate game down time spent repairing and restoring virtual machine
+images. Additionally, by designing new services from the ground up we can
+give participants experience with the common cause of vulnerabilities: poor
+design.
 
 The first scenario was good for getting the uninitiated starting in security,
-however, it did lacked While the first scenario focused mainly on attacking
-servers and their services, we needed to even the importance of defending to
-better align the game with a real world scenario.
+however, it did lack defense objectives. While the first scenario focused mainly
+on attacking servers and their services, we needed to even the importance of
+defending to better align the game with a real world scenario.
 
 Lastly, players of the first competition noted in their feedback they wanted
 more teamwork based cooperation. Specifically, those with little to no security
 experience had a tough time working out the solutions and would have liked to
-work with others outside of their team to learn techniques and practices. Team
-formation in the second competition needed to move away from the standard
+work with others outside of their team to  stratigize and learn techniques.
+Team formation in the second competition needed to move away from the standard
 method by which those who know each other tightly group together thus
 separating those who know from those who don't. This method tends to create
 groups with varying experience and a hording of knowledge.
@@ -89,83 +147,85 @@ groups with varying experience and a hording of knowledge.
 \label{stdesign}
 To ensure no participant would be able to use pre-built tools to exploit
 vulnerabilities, we chose to design services one might program during the first
-implementations of a ship from Star Trek. This design was chosen for two
-reasons: in the summer of 2011 Netflix began streaming every episode of every
-Star Trek series \cite{Netflix}, and we couldn't find anyone who had created
-such services or written anything to exploit such services. A listing of these
-services and their designs can be found in the Game Play and Services sections.
-The new approach also allowed us to make changes to the game play to focus on a
-more team based play.
+implementations of a ship from Star Trek. This design was chosen
+for two reasons: in the summer of 2011 Netflix began streaming every episode of
+every Star Trek series \cite{Netflix}, and we couldn't find anyone who
+had created such services or written anything to exploit such services. A
+listing of these services and their designs can be found in \textbf{Game Play}
+and \textbf{Services} sections ~\ref{stgameplay} and ~\ref{stservices}. The new
+approach also allowed us to make changes to the game play to focus on a more
+team based play.
 
 \subsubsection{Game Play}
 \label{stgameplay}
 The new game design was made to resemble a WarGame style of play consisting of
-only two teams each their own server to manage. We were even fortunate enough
-to provide both teams with their own rooms to work in together. Each team would
-initially receive the same source code of the services to fix and deploy on
-their servers (each a virtual machine running Ubuntu Server 11.10). Their goal
-to find and patch the vulnerabilities in their code and exploit them in the
-other team. If a team could keep their services responding and pass basic
+only two teams each with their own server to manage. We were even fortunate
+enough to provide both teams with their own rooms to work in secrecy. Each team
+initially received identical copies of each service and tasked to fix and
+deploy on their servers (each a virtual machine running Ubuntu Server 11.10).
+Their goal to find and patch the vulnerabilities in their code and exploit them
+in the other team. If a team could keep their services responding and pass basic
 functionality tests they would score points. However, if their services become
 unresponsive or failed the tests, whether their own fault or the opposing team,
 they would stop receiving points while the opposing team would score additional
 points.
 
-We also wanted to give those participants with little or no hacking, or even
-coding, experience something entertaining and contributory to do. Since these
-services should be fully functional and represent a star ship, then it stands
-those who feel they can't contribute could fly the ship around and score points
-for their team by shooting the other team's ship.
+We also wanted to give those participants with little or no hacking (or even
+coding) experience something entertaining and contributory to do. Since these
+services should be fully functional and collectively represent a star ship, then
+it stands those who feel they can't ``hack" could fly the ship around and
+score points for their team by shooting the other team's ship.
 
 \subsubsection{Score Keeping}
 \label{stscorekeeping}
 
 \subsubsection{Services}
 \label{stservices}
-On competition day, there were three implemented services in production for
-teams to work on with three additional services planned to be released later in
-the competition. Each of the planned services and a brief description of their
-functionality is listed at the end of this section.
+On competition day, there were three implemented services in production for the
+teams to fix with three additional services planned for release later in the
+competition. (Each of the planned services and a brief description of their
+functionality is listed at the end of this section.)
 
-Services are designed with two major parts, the built-in (or base)
+Services are designed with two major parts: the built-in (or base)
 functionality, and the competitor's implementation.
 
-The base functionality is implemented by us and provided in unlinked
-pre-compiled form for each team build from. It is meant to represent the
-initial implementation of ship's services programmers. There are a few seeded
-vulnerabilities and even more poor and hastily made designs. Base
-implementation of a service is responsible only for:
+The base functionality was implemented by us and provided in unlinked
+pre-compiled form for each team build on top of. It is meant to represent the
+initial implementation of ship's services as made by freshman ship programmers.
+There are a few seeded vulnerabilities and even more hidden in poor and hastily
+made designs. Base implementation of a service is only responsible for:
 
 \begin{itemize}
-    \item provide only the most basic level of support and implementation
+    \item providing only the most basic level of support and implementation
     necessary for the service to run, 
-    \item setup the network support required for running the service,
-    \item listen on an assigned port, accept incoming connections, and pass on
+    \item seting up the network support required for running the service,
+    \item listing on an assigned port, accept incoming connections, and pass on
     the connection to a handler which processes the incoming data,
-    \item run base functionality tests on the competitor's implementation and
+    \item runing base functionality tests on the competitor's implementation and
     pass on the results to the Score Keeper for scoring,
-    \item and keep a modest amount of internal book keeping specific to the
+    \item and keeping a modest amount of internal book keeping specific to the
     service to ensure the honesty of a competitor's implementation.
 \end{itemize}
 
 While the exact functions for each service differ, every service's base
-implementation has functions (defined externally in header files) for the
-competitor's code to call before finishing processing an incoming request. For
-each of a service's base function, there is a corresponding competitor's
-wrapper function to be called before the equivalent base function. The location
-of the wrapper functions are stored in a structure as function pointers defined
-in a shared header file between both implementations. These wrapper functions
-allow the competitors the chance to perform their own book keeping and sanitize
-inputs from requests before calling the base functions. A diagram of the
-typical call stack is available in Figure ~\ref{fig:wraperStructEx}. This is one
-way in which the players can patch vulnerabilities and design flaws.
+implementation has functions (defined as externalls in header files)
+for the competitor's code to call before finishing processing an incoming
+request. For each of a service's base function, there is a corresponding
+competitor's wrapper function to be called before the equivalent base function.
+The location of the wrapper functions are stored in a structure as function
+pointers defined in a shared header file between both implementations. These
+wrapper functions allow the competitors the chance to perform their own book
+keeping and sanitize inputs from requests before calling the base functions. A
+diagram of the typical call stack and a snippet of the header files are
+available in Figure ~\ref{fig:wraperStructEx}. This was one way for players to
+patch vulnerabilities and design flaws.
 
 To communicate between and control other services, each service had a
 pre-defined packet structure mimicking an IP packet. Both Teams started off with
-the same structure but were allowed to add on to fulfill any future needs. The
-initial structure contained only enough fields to control each specific command
-of a service. Any security or checksum features were left up to the participants
-to develop and deploy. 
+the same structures but were allowed to extend the packets to fulfill any
+future needs. The initial structure contained only enough fields to control each
+specific command of a service. Any security or error checking features were left
+up to the participants to develop and deploy. 
 
 \begin{figure}[here]
 \small
@@ -222,50 +282,58 @@ demonstrating the data flow of incoming requests.}
 \label{fig:wraperStructEx}
 \end{figure}
 
-\paragraph{Power} The critical service of each ship responsible for managing and
-distributing a fixed amount of available ship power to all other running
+\paragraph*{Power} The critical service of each ship responsible for managing
+and distributing a fixed amount of available ship power to all other running
 services. A service may only run while it has been allocated power. Should a
 service lose power, it shall be stopped and non-responsive until power is
 restored. If the power service itself is shutdown or crashed, all other
 services would be taken offline.
 
-\paragraph{Engines} Just like the engines in the star ships with support for
+\paragraph*{Engines} Just like the engines in the star ships with support for
 both impulse and warp speeds. The engine service is only concerned with
 managing either engine's current power allocation and speed as well as ensuring
 their health. Each engine leaks varying amounts of radiation which if not
 dissipated could damage the engines to the point they are no longer functional.
 Scotty can fix engine damage, but he's not a bloody miracle worker; he can only
-work so fast.
+work so fast!
 
-\paragraph{Navigation} Responsible for setting a ship's course direction,
-managing the ship's internal representation of the map, and managing the
-engines.
+\paragraph*{Navigation} Responsible for setting a ship's course, updating the
+ship's internal representation of the map, and managing the engines.
 
-\paragraph{Communications} The communications service is independent of all
-other services except for the power service, and instead of managing some
-aspect of a ship, presents a team with a number of cryptography puzzles to be
-decrypted, solved, and posted back to the Score Keeper for validation.
+\paragraph*{Communications} Independent of all other services except for the
+power service, and instead of managing some aspect of a ship, presents each team
+with a number of cryptography puzzles to be decrypted, solved, and posted back
+to the Score Keeper for validation.
 
-\paragraph{Weapons}
+\paragraph*{Weapons}
 
-\paragraph{Shields}
+\paragraph*{Shields}
 
 \subsection{Game Day Results}
 The competition started around noon on November 5th, 2011 with four participants
-and three of the services in production. These were the power, engines, and
-navigation services. The others had not yet been implemented, but were planned
-to be release some time at the end of the first day or during the start of the
-second day of competition.
+and three of the services in production. Those services were the power, engines,
+and navigation. The others had not yet been implemented, but were
+planned to be release some time at the end of the first day or during the start
+of the second day of competition.
 
 Over the next three or four hours both teams were still reading through the
 documentation and asking questions trying to figure out the structure of the
-game and the code. Very little code was actually being written, but design flaws
-and vulnerabilities were slowly being realized. One or two members of Team A
-had previous experience in UNIX System Administration and immediately began
-setting up monitoring tools to track incoming requests and log the commands
-executed by each service. After which they moved their focus to the operating
-system running their services and attempted to ``secure'' it instead of their
-services. A few hours later and they abandoned this approach.
+game and the code. At least we thought they were reading the documentation.
+Both teams would read a bit of the documentation and then start asking a
+dozen or so questions each. Almost all of which could be answered if they
+continued reading. It became quite irritating quite quickly especially as
+the questions started to move towards exploiting the game rather than
+playing it. Very little code was actually being written, but design flaws and
+vulnerabilities were slowly being realized.
+
+One or two members of Team A had previous experience in UNIX System
+Administration and immediately began setting up monitoring tools to track
+incoming requests and log the commands executed by each service. After which
+they moved their focus to the operating system running their services and
+attempted to ``secure'' it instead of their services. A few hours later and they
+abandoned this approach. Eventually they settled on simply returning from the
+request handlers of the engine and navigation services. They effectively
+produced a reverse denial of service.
 
 Team B on the other hand, situated in the neighboring conference room decided to
 start by developing tools to help them manage the services. (The initial
@@ -278,7 +346,7 @@ each service's commands, the team could select the authentic commands and dump
 any malicious ones. This was a great start for the team as they were able to
 reap quick results.
 
-Up until this point Team A had been setting up connections and sending random
+Up until this point Team A had been setting up connections and sending ``random''
 bytes of data to Team B's services. Since the original implementation was
 faulty, these connections and incorrect data often crashed Team B's services,
 causing them to fail tests and costing them points. When the new filter went
@@ -323,9 +391,10 @@ bad code (see next problem).
 half weeks prior to the competition. While were able to catch and solve a few
 big problems before the last minute, we weren't able to perform a ``dry-run'' of
 game and iron out some other major issues between the Score Keeper and the
-services. A fare and functional Score Keeper is key to a successful CTF \cite{}.
-Without the dry-run, we weren't able to find logic and design flaws in our
-service tests and reporting which severely affected game play.
+services. A fare and functional Score Keeper is key to a successful CTF
+\cite{BlackHat2004}. Without the dry-run, we weren't able to find logic and
+design flaws in our service tests and reporting which severely affected game
+play.
 
 Ideally, all code (services, Score Keeper, helpers, etc.) should begin
 undergoing final implementation tests and debugging four weeks out from the
@@ -456,44 +525,43 @@ offensively and defensively
 \subsection{Teaching, Advertisement and Timing}
 
 \paragraph{Teaching}
-Assuming the continued intent to varying skill level play and have an impact on the game
-providing workshops, infosessions etc. leading up to the competition will greatly help 
-improve the the average competetitors ability to effectively participate in the competition.
+Assuming the continued intent to varying skill level play and have an impact on
+the game providing workshops, infosessions etc. leading up to the competition
+will greatly help improve the the average competetitors ability to effectively
+participate in the competition.
 
 \paragraph{Advertise}
-Spam Spam Spam and more Spam. Not literally but contininousely notify your prospective body
-of people you think will potentially show up the time date and location of the competition.
-Put of posters and flyers about 2 weeks before the competition date. Have  multiple
-department newsletters.
+Spam Spam Spam and more Spam. Not literally but contininousely notify your
+prospective body of people you think will potentially show up the time date and
+location of the competition. Put of posters and flyers about 2 weeks before the
+competition date. Have multiple department newsletters.
 
 \paragraph{Timing}
-Being on a quarter system there is no good time to host the competition. The end of week 6 
-in a quarter might be the ideal time to avoid conflicts with midterms. However, 
-use best fit (least number of conflicts) when picking a date knowing no weekend you chose is ever going to be perfect.
+Being on a quarter system there is no good time to host the competition. The
+end of week 6 in a quarter might be the ideal time to avoid conflicts with
+midterms. However, use best fit (least number of conflicts) when picking a date
+knowing no weekend you chose is ever going to be perfect.
 
 
-\subsection{Suggestions}
+\section{Suggestions And Things to Avoid}
 A small list of guidelines to follow.
 %Security 101 sessions the quarter of the competition. \\ \\
 \begin{itemize}
-\item Security workshops leading up to competition covering topics that are
-  needed to know before competing.
-\item Advertise every week (in conjunction with the 101 sessions).
-\item Reserve Bonderson rooms WELL in advance and confirm the reservation months in
-  advance.
-\item The end of week 6 in a quarter might be the ideal time to avoid conflicts with
-midterms. 
-\item However, use best fit (least number of conflicts) when picking a date
-avoiding sporting events, club functions, holidays, midterms, etc., while
-knowing no weekend you chose is ever going to be perfect.\\ \\
-
-\item No all nighters. You're mainly going to be crashing and you'd rather be up all
-night during the competition rather than working on only a few hours of sleep
-and heading towards 56 hours without sleep.\\ \\
-
-\item Leave at least 2 full weeks before the start of the CTF to \textbf{finish} up
-  testing and documentation.
-
+    \item Security workshops leading up to competition covering topics that are
+    needed to know before competing.
+    \item Advertise every week (in conjunction with the 101 sessions).
+    \item Reserve Bonderson rooms WELL in advance and confirm the reservation
+    months in advance.
+    \item The end of week 6 in a quarter might be the ideal time to avoid
+    conflicts with midterms.
+    \item However, use best fit (least number of conflicts) when picking a date
+    avoiding sporting events, club functions, holidays, midterms, etc., while
+    knowing no weekend you chose is ever going to be perfect.
+    \item No all nighters. You're mainly going to be crashing and you'd rather
+    be up all night during the competition rather than working on only a few
+    hours of sleep and heading towards 56 hours without sleep.
+    \item Leave at least 2 full weeks before the start of the CTF to
+    \textbf{finish} up testing and documentation.
 \end{itemize}
 
 \section{Conclusion}
