@@ -19,19 +19,32 @@
 
 \title{\vfill Title}
 \author{
- By Dirk Cummings \vspace{10pt} \\
- Orion Miller \vspace{10pt} \\ 
-Senior Project  \vspace{10pt} \\ 
-Dr. Philip Nico \vspace{10pt} \\ 
+ A Senor Project By \vspace{10pt} \\
+ Dirk Cummings \\
+ Orion Miller \vspace{10pt} \\
+ Advisor \vspace{10pt} \\
+ Dr. Philip Nico \\
+ Cal Poly San Luis Obispo \vspace{10pt} \\ 
 }
-\date{December 2, 2011}
+\date{December 3, 2011}
 
 \maketitle
 
-\vfill  %in combination with \newpage this forces the abstract to the bottom of
-% the page
+\vfill
 \begin{abstract}
-Abstract
+In the 2010-2011 Academic year, the student run computer security club White
+Hat, with assistance from the Cal Poly Computer Science Department and funding
+support from Ratheon, opened a new Security Lab. Recognizing the need for an
+increased focus in teaching security, the new lab provides a place for students
+to work on security related projects in a safe environment. To help christen the
+new lab, we set out to host the first hacker Capture the Flag competitions at
+Cal Poly. What resulted was two competitions occuring in May and November 2011.
+The first modeled more typical hacker challenges while our second scenario
+consisted of completely new services with a Star Trek theme. This paper
+discusses some of different types of CTFs, describes the design of each of our
+CTF scenarios, the problems incurred, suggests improvements to game design for
+the next competition, and analysis the effectiveness of our implementations to
+meet the desired objectives and against other capture the flag competitions.
 \end{abstract}
 
 \thispagestyle{empty} %remove page number from title page
@@ -312,7 +325,7 @@ images. Additionally, by designing new services from the ground up we can
 give participants experience with the common cause of vulnerabilities: poor
 design.
 
-Our first scenario was good for getting the uninitiated starting in security,
+Our first scenario was good for getting the uninitiated started in security,
 however, it did lack defensive objectives. While the first scenario focused
 mainly on attacking servers and their services, we needed to even the importance
 of defending to better align the game with a real world scenario.
@@ -337,23 +350,22 @@ for two reasons: in the summer of 2011 Netflix began streaming every episode of
 every Star Trek series \cite{Netflix}, and we couldn't find anyone who
 had created such services or written anything to exploit such services. A
 listing of these services and their designs can be found in \textbf{Game Play}
-and \textbf{Services} sections ~\ref{stgameplay} and ~\ref{stservices}. The new
-approach also allowed us to make changes to the game play to focus on a more
-team based play.
+and \textbf{Services} sections ~\ref{stgameplay} and ~\ref{stservices}
+respectively. Our new approach, described in the following sections, also
+allowed us to make changes to the game play to focus more on team based play.
 
 \subsubsection{Game Play}
 \label{stgameplay}
 The new game design was made to resemble a WarGame style of play consisting of
 only two teams each with their own server to manage. We were even fortunate
-enough to provide both teams with their own rooms to work in secrecy. Each team
-initially received identical copies of each service and tasked to fix and
-deploy on their servers (each a virtual machine running Ubuntu Server 11.10).
-Their goal to find and patch the vulnerabilities in their code and exploit them
-in the other team. If a team could keep their services responding and pass basic
-functionality tests they would score points. However, if their services become
-unresponsive or failed the tests, whether their own fault or the opposing team,
-they would stop receiving points while the opposing team would score additional
-points.
+enough to provide both teams with their own rooms to work in secrecy. Both
+teams initially received identical copies of each service. Their goal to find
+and patch vulnerabilities in their services then turn around and exploit the
+same vulnerabilites in the other team. If a team could keep their services
+responding and pass basic functionality tests they would score points. However,
+if their services become unresponsive or failed the tests, whether their own
+fault or the opposing team, they would stop receiving points while the opposing
+team would score additional points.
 
 We also wanted to give those participants with little or no hacking (or even
 coding) experience something entertaining and contributory to do. Since these
@@ -361,7 +373,9 @@ services should be fully functional and collectively represent a star ship, then
 it stands those who feel they can't ``hack" could fly the ship around and
 score points for their team by shooting the other team's ship.
 
-
+Team formation also changed. Now, no one knew which team they were playing on
+until they showed up to the event. Each new person walking through the door was
+automatically assigned to the oposing team assigned to the person before them.
 
 \subsubsection{Score Keeping}
 \label{stscorekeeping}
@@ -413,23 +427,24 @@ being off.
 On competition day, there were three implemented services in production for the
 teams to fix with three additional services planned for release later in the
 competition. (Each of the planned services and a brief description of their
-functionality is listed at the end of this section.)
+functionality is listed at the end of this section).
 
 Services are designed with two major parts: the built-in (or base)
 functionality, and the competitor's implementation.
 
 The base functionality was implemented by us and provided in unlinked
-pre-compiled form for each team build on top of. It is meant to represent the
-initial implementation of ship's services as made by freshman ship programmers.
-There are a few seeded vulnerabilities and even more hidden in poor and hastily
-made designs. Base implementation of a service is only responsible for:
+pre-compiled form for each team to build on top of. It is meant to represent the
+initial implementation of a ship's services as made by first year ship
+programmers. There are a few seeded vulnerabilities and even more hidden in poor
+and hastily made designs. Base implementation of a service is only responsible
+for:
 
 \begin{itemize}
     \item providing only the most basic level of support and implementation
     necessary for the service to run, 
     \item setting up the network support required for running the service,
-    \item listing on an assigned port, accept incoming connections, and pass on
-    the connection to a handler which processes the incoming data,
+    \item listening on an assigned port, accept incoming connections, and pass
+    on the connection to a handler which processes the incoming data,
     \item running base functionality tests on the competitor's implementation and
     pass on the results to the Score Keeper for scoring,
     \item and keeping a modest amount of internal book keeping specific to the
@@ -450,7 +465,7 @@ available in Figure ~\ref{fig:wraperStructEx}. This was one way for players to
 patch vulnerabilities and design flaws.
 
 To communicate between and control other services, each service had a
-pre-defined packet structure mimicking an IP packet. Both Teams started off with
+pre-defined packet structure mimicking an IP packet. Both teams started off with
 the same structures but were allowed to extend the packets to fulfill any
 future needs. The initial structure contained only enough fields to control each
 specific command of a service. Any security or error checking features were left
@@ -514,7 +529,7 @@ demonstrating the data flow of incoming requests.}
 \paragraph*{Power} The critical service of each ship responsible for managing
 and distributing a fixed amount of available ship power to all other running
 services. A service may only run while it has been allocated power. Should a
-service lose power, it shall be stopped and non-responsive until power is
+service lose power, it shall be stopped and remain non-responsive until power is
 restored. If the power service itself is shutdown or crashed, all other
 services would be taken offline.
 
@@ -541,9 +556,9 @@ to the Score Keeper for validation.
 \subsection{Game Day Results}
 The competition started around noon on November 5th, 2011 with four participants
 and three of the services in production. Those services were the power, engines,
-and navigation. The others had not yet been implemented, but were
-planned to be release some time at the end of the first day or during the start
-of the second day of competition.
+and navigation. The others had not yet been implemented, but were planned for
+release some time at the end of the first day or during the start of the second
+day of competition.
 
 Over the next three or four hours both teams were still reading through the
 documentation and asking questions trying to figure out the structure of the
@@ -560,8 +575,8 @@ Administration and immediately began setting up monitoring tools to track
 incoming requests and log the commands executed by each service. After which
 they moved their focus to the operating system running their services and
 attempted to ``secure'' it instead of their services. A few hours later and they
-abandoned this approach. Eventually they settled on simply returning from the
-request handlers of the engine and navigation services. They effectively
+abandoned this approach. Eventually they settled on simply not processing any
+incoming requests in their engine and navigation services. They effectively
 produced a reverse denial of service.
 
 Team B on the other hand, situated in the neighboring conference room decided to
@@ -594,10 +609,10 @@ our lack of availability we weren't able to get a similar series setup. We
 don't want to suggest correlation implies causation, but there was an obviously
 lower attendance for the second competition.
 
-\paragraph*{Stagnation} While one team outright dumped all incoming requests and
+\paragraph*{Stagnation} While one team outright dumped all incoming requests, 
 the other did essentially the same thing by hardening access to their services
-no one not ssh'd into their server could gain control. Ultimately a good
-achievement, however, game play began to stagnate.
+such that anyone not remotely logged-in into their server could not gain
+control. Ultimately a good achievement, however, game play began to stagnate.
 
 An easy fix would be to require all services to have an open public interface.
 Instead of giving teams control of the server and the ability to lock others
@@ -630,12 +645,12 @@ undergoing final implementation tests and debugging four weeks out from the
 competition and integration tests done two full weeks out culminating in a
 complete dry-run of the game. All services and Score Keeping should be fully
 implemented and tested before integration testing begins. Additionally, at least
-one virtual machine image should created and saved for each of the following
+one virtual machine image should be created and saved for each of the following
 (and will not be used for the competition):
 
 \begin{itemize}
   \item a clean (without any game code) and fully configured server
-  \item for each team, an working (with all game code included) instance which
+  \item for each team, a working (with all game code included) instance which
   also contains and passes all implementation and integration tests
   \item for each team, the final working copy distributed at the start of
   competition
