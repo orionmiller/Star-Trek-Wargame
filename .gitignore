@@ -18,6 +18,7 @@ scomms
 
 # Project Specific files
 .project
+.texlipse
 
 # LaTeX files
 *.aux
@@ -25,3 +26,4 @@ scomms
 *.bbl
 *.blg
 *.synctex.gz
+*.tex.bak
