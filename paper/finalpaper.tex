@@ -32,19 +32,20 @@
 
 \vfill
 \begin{abstract}
-In the 2010-2011 Academic year, the student run computer security club White
+In the 2010-2011 academic year, the student run computer security club White
 Hat, with assistance from the Cal Poly Computer Science Department and funding
-support from Ratheon, opened a new Security Lab. Recognizing the need for an
+support from Raytheon, opened a new security lab. Recognizing the need for an
 increased focus in teaching security, the new lab provides a place for students
 to work on security related projects in a safe environment. To help christen the
 new lab, we set out to host the first hacker Capture the Flag competitions at
-Cal Poly. What resulted was two competitions occuring in May and November 2011.
-The first modeled more typical hacker challenges while our second scenario
-consisted of completely new services with a Star Trek theme. This paper
-discusses some of different types of CTFs, describes the design of each of our
-CTF scenarios, the problems incurred, suggests improvements to game design for
-the next competition, and analysis the effectiveness of our implementations to
-meet the desired objectives and against other capture the flag competitions.
+Cal Poly. What resulted was two competition; one occuring in May 2011, and the
+other in November. The first modeled more typical hacker challenges while our
+second scenario consisted of completely new services with a Star Trek theme.
+This paper discusses some of different types of CTFs, describes the design of
+each of our CTF scenarios and the problems incurred, suggests improvements to
+game design for the next competition, an analysis or our implementations'
+effectiveness to meet the desired objectives, and a comparison against other
+capture the flag competitions.
 \end{abstract}
 
 \thispagestyle{empty} %remove page number from title page
@@ -82,16 +83,16 @@ Computer Network Security, created the NetSecLab: a six week team project
 taking students with varying levels of Linux experience from the installation
 and configuration of an operating system, to securing and attacking common
 services \cite{NetSecLab}. Each team's server (also called a ``box'') typically
-runs six or seven standard services such as ssh, HTTP, telnet, and MySQL
+runs six or seven standard services (e.g ssh, Apache, telnet, and MySQL)
 \cite{NetSecLab}. In addition to attacking other team's boxes, there are a few
 ``victim boxes'' running different versions of Redhat or Windows XP SP1 with
 seeded vulnerabilities for teams to search for and exploit \cite{NetSecLab}.
 Teams score points gaining access to other boxes, retrieving hash files, and
-mapping the network and services \cite{NetSecLab}. Points are lost when you box
-is compromised \cite{NetSecLab}. The NetSecLab is one of the more typical hacke
-CTFs modified to work in classroom settings on students with little hacking
-experience. Competitions can become quite advanced as the experience level
-increases as seen at UC Santa Barbara International CTF.
+mapping the network and services \cite{NetSecLab}. Points are lost when their
+box is compromised \cite{NetSecLab}. The NetSecLab is one of the more typical
+hacker CTFs modified to work in a classroom setting with students having little
+hacking experience. Competitions can become quite advanced as the experience
+level increases as seen at UC Santa Barbara International CTF.
 
 Lexi Pimenidis describes how he's setup some CTFs in the past
 \cite{HostingHackingChallenge} and provides a good outline for those starting
@@ -121,19 +122,22 @@ attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{Objectives}
-Out of a lack of security classes and security focus apart of the Computer science
-department, we wanted host two CTFS to
+Due to the lack of security classes and a security focus apart of the Computer
+Science Department ciriculum, we wanted host two CTFs to
 
 \begin{itemize}
-\item Generate an interest on campus for security and hacker capture the flags
-\item Provide a fun way  of hacking and security concepts and skills to our peers
-\item See if there were other students interested in hacker capture the flags
-\item Create CTFs that allow a wide range of skill levels to participate
+    \item See if there were other students interested in hacker capture the
+    flags
+    \item Generate an interest on campus for security and hacker capture the
+    flag competitions
+    \item Provide a fun way  of hacking 
+    \item Introduce security concepts and skills to our peers
+    \item Create CTFs that allow a wide range of skill levels to participate
 \end{itemize}
 
-Additional benefits of the creating and hosting Hacker CTFs make use of the new
-Security Lab on campus and help develop a Hacker / Security culture with White
-Hat (i.e. School Hacking and Cyber-Security Club).
+Additional benefits of the Hacker CTFs include making use of the new Security
+Lab on campus and help develop a hacker and security culture with White Hat
+(the student run hacking and cyber-security club at Cal Poly).
 
 \section{The Duke Nukem Scenario}
 
@@ -148,7 +152,6 @@ having a good chance of doing well on game day.
 % Flags
 
 \subsection{Design}
-
 \subsubsection{Game Play}
 The set of the game was players were given a website that directed had a release of
 'Duke Nukem Forever' releasing. There goal was to complete a series of tasks
@@ -171,11 +174,11 @@ the game):
   \item Web Server
       \begin{itemize}
         \item \textbf{Octobrain} - The first exploit to find. A PHP web page
-        used the \textit{system()} function to send user input to
-        \textit{cowsay}. With no input sanitation, users would be able to
-        execute other command on the system. A simple listing of the current
-        directory would list the file ``FLAG.txt'' which contained the first
-        flag.
+        used a \textit{system()} function to execute user input on the system
+        through the \textit{cowsay} command. With no input sanitation, users
+        would be able to execute other command on the system. A simple listing
+        of the current directory would list the file ``FLAG.txt'' which
+        contained the first flag.
         \item \textbf{Octobrain PHP} - Using the same exploit as above, another
         file named ``FLAG.php'' also contained another flag. However, users
         needed to know how PHP is interpreted by the browser and note they
@@ -183,19 +186,20 @@ the game):
         \item \textbf{Bad Employee Email Password} - The web server also had a
         link to the employee's webmail login (a feature to allow employees to
         get their email while not in the office). Reading through a series of
-        bio pages for each of the Duke Nukem developer team members, one would
-        be able to find enough information to guess one particular employee's
-        email password.
+        bio pages for each of the Duke Nukem developer team members, one could
+        find enough information to guess a particular employee's email password.
         \item \textbf{Plain Text Reset Passwords} - A new intern was hired to
         work in the Human Resource Department. She's a little ditzy and forgot
         her password and needed it reset. The new password was emailed to her in
-        plain text.
+        plain text. These credentials allowed access to the Human Resources
+        server and databases.
         \item \textbf{Steganography} - Three images available in plain sight on
         the web page contained hidden flags. One of the images had slight
-        distortions and a simple search for ``FLAG'' would find the flag id.
-        The flag hidden in the other image was broken up and needed to be pieced
-        together. The last image contained a hidden RAR compressed file which
-        needed to be extracted in order to discover the flag.        
+        distortions and a simple search for ``FLAG'' in the raw data of the
+        file would reveal a flag id. A flag hidden in another image was
+        broken up and needed to be pieced together. The last image contained a
+        hidden RAR compressed file which needed to be extracted in order to
+        discover the flag.
       \end{itemize}
   \item Human Resources
       \begin{itemize}
@@ -207,7 +211,7 @@ the game):
         \item \textbf{Steganography} - Another flag hidden in a mass of shared
         Human Resource files.        
       \end{itemize}
-  \item FTP Server - Represents an FTP server for the Developer team to store
+  \item FTP Server - Represents a FTP server for the Developer team to store
   their current iterations of the game.
       \begin{itemize}
         \item \textbf{Steganography} - A flag was hidden in one of the saved
@@ -220,8 +224,8 @@ the game):
       \begin{itemize}
         \item \textbf{High Port Telnet} - A quick port scan revealed a telnet
         server running which when connected to would reveal a flag.
-        \item \textbf{Packet Sniffing} - Periodic packets being sent out could
-        be picked up to reveal a flag.
+        \item \textbf{Packet Sniffing} - Periodic packets being sent out
+        could be picked up to reveal a flag.
       \end{itemize}
 \end{enumerate}
 
@@ -234,7 +238,7 @@ network diagram is show in Figure ~\ref{fig:dukeNetworkDiagram}. The pseudo
 company's web server would be on all assigned VLANs so all teams have access.
 
 Each server within the pseudo company would be on two networks (see Figure
-~\ref{fig:dukeNukemIntranetDiagram}). One to act as a company intranet, and the
+~\ref{fig:dukeNukemIntranetDiagram}). One to act as a company Intranet, and the
 other for use by the Game Master. Access to the Game Master network was
 restricted and participants told not to interfere with the network (whenever
 they happened upon it). Both internal game networks were a simple shared virtual
@@ -254,7 +258,6 @@ did not end up including any of the described VLANs and the network connection
 out of the lab was physically removed.}
 \label{fig:dukeNetworkDiagram}
 \end{figure}
-
 
 \begin{figure}[here]
 \includegraphics[scale=.75]{resources/dukenukem_intranet_diagram.eps}
@@ -291,7 +294,7 @@ folders. For instance, an exploit which allowed participants to gain shell
 access also allowed them to delete every file in the web directory or emptying
 files by rewriting to them. In another instance, users were allowed to create
 massive files in the \textit{tmp} directory. The virtual machine was limited to
-15 Gigabytes of hard-drive space and eventually the \textbf{tmp} folder grew so
+15 Gigabytes of hard-drive space and eventually the \textit{tmp} folder grew so
 large it prevented anyone else from downloading script they'd written to help
 them find flags. Eventually, the entire virtual machine was unusable and needed
 to be re-imaged.
@@ -424,16 +427,20 @@ as invisible as possible for the server and the score keeping partialy handled w
 the base funcitonality given to the players to compile their service. [ see base 
 functionality]. Also need to prevent the ability to spoof traffic.
 
-\paragraph{Scoring Schemes}
-Our Metric for scores.
-Up-Time
-Main reason to main part of the scoring for the hacking side of the game.
+\paragraph*{Scoring Schemes} Our metric for scores:
+\begin{itemize}
+  \item \textbf{Up-Time} - The main method for scoring points and
+  represents the hacking side of the game. Scores are based on the accumulated
+  time each service was responding to requests and passing the base-functionality tests. 
+  \item \textbf{Communications} - Secondary encryption challenges.
+  \item \textbf{Damage Dealt} - Teams may gain points not by hacking but by
+  playing the game and fireing weapons as the opposing team's ship.
+\end{itemize}
 
-Damage Dealt [were not fully functional during game]
-Comms - Encryption Challenges - [ available for the game]
-Both exist to add the possible other challenges to broden the interest for the game.
+Both the communication and damange metics exist to add other challenges to
+broden the interest for the game.
 
-\paragraph{Score Keeping}
+\paragraph*{Score Keeping}
 Reasons for internal.
 Since they can modify their code completely. We need some way on their side of
 in check and making sure their service was keeping some form of base functionality.
@@ -582,11 +589,11 @@ power service, and instead of managing some aspect of a ship, presents each team
 with a number of cryptography puzzles to be decrypted, solved, and posted back
 to the Score Keeper for validation.
 
-\paragraph*{Weapons} Shoots at a ``service''.  If the shooter is within
-range and there is no shields on the that specified service the shooter receives
+\paragraph*{Weapons} Shoots at a ``service''.  If the shooter is within range
+and there are no shields protecting the targeted service the shooter receives
 points for damaging their opponent.
 
-\paragraph*{Shields} Protects a service from shot at by weapons.
+\paragraph*{Shields} Temporarily protects a service from opposing weapons fire.
 
 \subsection{Game Day Results}
 The competition started around noon on November 5th, 2011 with four participants
@@ -738,7 +745,6 @@ privileges and without Apache, PHP, or MySQL installed.
 
 
 \section{The Next Ideal Solution}
-
 \subsection{Game Play}
 Stick with the scenario [star trek] of large teams pitting against each other 
 but create a bigger breadth of tasks and ways of winning similar to [scenario 1].
@@ -748,7 +754,7 @@ and retain them for longer.
 
 \subsection{Network}
 
-\paragraph{VPN}
+\subsubsection{VPN}
 Create a VPN for the Sec Lab specifically for this event so people can participate any where
 in the world. Make the event a multi school event. Similar to the [ucsb ctf]. This would
 also allow students to practice when the security lab is closed. This also could be used
@@ -756,17 +762,17 @@ for the design of long term (e.g. Quarter Long) CTFs.
 
 \subsection{Services}
 
-\paragraph{Visualization}
+\subsubsection{Visualization}
 Possibly add some form of graphical front-end end to game. Creating a merge between
 a hacking competition and video game. This would be used to help encourage new players
 to get involved with future CTFs or security.
 
-\paragraph{Library}
+\subsubsection{Library}
 Create libraries to make it easier to create new services. Possibly make a generic base
 functionality. This way it can be easier to create new services and so more time can
 be spent on adding depth to the functionality of the service.
 
-\paragraph{Game Time Compile and Submit}
+\subsubsection{Game Time Compile and Submit}
 Add a way for players to automatically compile their code and the snapshot of that code
 to the a repository. This would allow for a post game analysis of code. Possibly using
 code Covarity [eric's paper] to see how robust the code is and compare it to scores
@@ -774,25 +780,25 @@ that team received.
 
 \subsection{Score Keeper}
 
-\paragraph{Obfuscation}
+\subsubsection{Obfuscation}
 The score keeper needs to be hidden better. Internally within the files and externally
 as the score keeping server.
 
-\textit{Internally}
+\paragraph*{Internally}
 Encrypted packing of the base functionality, would be an extra deterant of people being
 able to reverse engineer the base functionality.
 
-\textit{Communication}
+\paragraph*{Communication}
 We had encryption and some form of basic authentication by using a password.
 Needs to be better.
 
-\textit{Externally}
+\paragraph*{Externally}
 Make your own virtual router to put your score keeper behind so that it makes it
 more difficult to directly connect tot he score keeper but also allows you to in a central
 point of score keeping see everything going on the network.
 %ghetto hackerz did this
 
-\paragraph{Scoring Metrics}
+\subsubsection{Scoring Metrics}
 If you can generate a flag capturing means of qualifying for points it is a bit easier
 [scenario one - scoring] however if the game play is similar to [game 2] then there
 needs to be a better metric than just checking the up times and down times of those machines.
@@ -838,10 +844,6 @@ been covered in a previous section or are important enough to be reiterated:
     (maybe even one like this) and documenting before you begin work (ideally)
     or while you're working will greatly help in the future.
 \end{itemize}
-
-\section{Compare Scenarios}
-Players of the 1st scenario were more curious than in scenario 2 were they felt
-like we should give them the answer.
 
 \section{Conclusion}
 
