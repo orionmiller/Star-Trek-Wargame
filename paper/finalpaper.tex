@@ -126,9 +126,10 @@ Hat (i.e. School Hacking and Cyber-Security Club).
 
 \subsection{Objectives}
 Since this was our first CTF we wanted and because the lack of cyber security
-skills on campus we felt that putting an emphasis on a wide array of challenges
+on campus we felt that putting an emphasis on a wide array of challenges
 would increase participation and allow for newcomers to have a good chance of 
 having a good chance of doing well on game day.
+
 
 % Security 101
 % Flags
@@ -136,10 +137,17 @@ having a good chance of doing well on game day.
 \subsection{Design}
 
 \subsubsection{Game Play}
-% Prevent Linear Progression
-% Wide Variety of Tasks
-% Obvious Flags
+The set of the game was players were given a website that directed had a release of
+'Duke Nukem Forever' releasing. There goal was to complete a series of tasks
+to progress through variety of hacking challenges and progress to eventually get
+the copy of the new Duke Nukem game.
 
+To help prevent players from getting stuck we made each task have hints to multiple
+up coming tasks. This was to prevent a linear progression of tasks. It was to prevent
+the lack of knowledge or technical ability of one task preventing them from winning
+the competition. The flags for each task were consistent (alpha numeric key X number
+of chars long) and usually out of place to notify players they have accomplished
+the task.
 
 \subsubsection{Tasks}
 The planned exploits and seeded flags for each of the servers is listed and
@@ -559,9 +567,11 @@ power service, and instead of managing some aspect of a ship, presents each team
 with a number of cryptography puzzles to be decrypted, solved, and posted back
 to the Score Keeper for validation.
 
-\paragraph*{Weapons}
+\paragraph*{Weapons} Shoots at a ``service''.  If the shooter is within
+range and there is no shields on the that specified service the shooter receives
+points for damaging their opponent.
 
-\paragraph*{Shields}
+\paragraph*{Shields} Protects a service from shot at by weapons.
 
 \subsection{Game Day Results}
 The competition started around noon on November 5th, 2011 with four participants
@@ -754,7 +764,7 @@ The score keeper needs to be hidden better. Internally within the files and exte
 as the score keeping server.
 
 \textit{Internally}
-Encrypted packing of the base functionality. Would add extra prevention of people being
+Encrypted packing of the base functionality, would be an extra deterant of people being
 able to reverse engineer the base functionality.
 
 \textit{Communication}
@@ -813,6 +823,10 @@ been covered in a previous section or are important enough to be reiterated:
     (maybe even one like this) and documenting before you begin work (ideally)
     or while you're working will greatly help in the future.
 \end{itemize}
+
+\section{Compare Scenarios}
+Players of the 1st scenario were more curious than in scenario 2 were they felt
+like we should give them the answer.
 
 \section{Conclusion}
 
