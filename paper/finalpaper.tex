@@ -38,7 +38,7 @@ support from Raytheon, opened a new security lab. Recognizing the need for an
 increased focus in teaching security, the new lab provides a place for students
 to work on security related projects in a safe environment. To help christen the
 new lab, we set out to host the first hacker Capture the Flag competitions at
-Cal Poly. What resulted was two competition; one occuring in May 2011, and the
+Cal Poly. What resulted was two competitions; one occuring in May 2011, and the
 other in November. The first modeled more typical hacker challenges while our
 second scenario consisted of completely new services with a Star Trek theme.
 This paper discusses some of different types of CTFs, describes the design of
@@ -73,9 +73,29 @@ classroom'' \cite{HostingHackingChallenge}. Cal Poly's ``Learn By Doing'' motto
 provides a good platform for us to apply and expand our security knowledge
 without mounds of textbooks.
 
-\paragraph*{DEF CON} The more know competition is the annual DEF CON CTF
+\paragraph*{DEF CON} The more well known competition is the annual DEF CON CTF
 in Las Vegas \cite{DEFCONCTF}. The format, theme, and scenario has changed over
-the years as the organizers change hands every few years. 
+the years as the organizers change hands every few years.
+
+Ghetto hackers - one groups who ran the DEF CON 10 11 12 of the notable groups hosting the ctf
+first group to greatly improve the scoring of the game and makings a more
+realistic scoring system
+STAR Central Router - 8 connections
+8 teams scattered around a STAR router
+each team gets one CAT5 cable that connects into a computer they built
+it has 8 network interfaces - each network interface is attached inside on a linux to a
+usermode computer - 9 user mode for the score board - 10th to connect them all together
+none of the devices have the ablitity to cross networking information together
+except for small access ports. On the small access ports it  has forward and reverse NAT. So
+everything connects to eachother from the same ip address. It is impossible to tell
+the difference between the score board and other teams. Use score board to force a 
+network service. Best defense is to quit which doesn't cut it inthe corporate world.
+
+
+Notable Changes
+- they put there score keeper behind / apart of the nat
+so there was no way that a player could directly interact witht eh score keeper
+
 
 \paragraph*{Educational CTFs} There are a few hacking CTFs designed specifically
 for the course laboratory setting. Georgia Tech's graduate course ECS 6612,
