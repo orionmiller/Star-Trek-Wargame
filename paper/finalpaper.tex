@@ -137,12 +137,8 @@ attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{Objectives}
-<<<<<<< HEAD
 \label{MainObjectives}
-The computer science corriculum at Cal Poly has only recently increased the
-=======
 The computer science curriculum at Cal Poly has only recently increased the
->>>>>>> c697019b22230c640a0ae13f12ce843e63e2cbd1
 number of security course offerings yet there is still a lack of security
 experience in the student body. This presents us with a difficulty when designing
 the competitions. 
@@ -174,7 +170,6 @@ To improve our conditions, we wanted our CTFs to
 Additional benefits of the Hacker CTFs include making use of the new Security
 Lab on campus and help develop a hacker and security culture with White Hat
 (the student run hacking and cyber-security club at Cal Poly).
-
 
 \section{The Duke Nukem Scenario}
 \subsection{Objectives}
@@ -282,7 +277,7 @@ it received a new flag from the LPD it would update it in the MySQL database.
 \paragraph*{Local Points Daemon}
 A Local Points Daemon (LPD) would run on each VM and would listen for the game master
 to tell LPD that it needed to update the flag for a specific task. It would then call
-our flag generater program and update the flag for the specific task and then let
+our flag generator program and update the flag for the specific task and then let
 the GM know the new flag for the specified task.
 
 \paragraph*{Flag Generation}
@@ -489,8 +484,8 @@ their service.
 We needed the score keeping to be more difficult to break than to play the game 
 within the time frame of the game. To do this we needed to make the score keeper
 as invisible as possible for the server and the score keeping partially handled with
-the base functionality given to the players to compile their service. [ see base 
-functionality]. Also need to prevent the ability to spoof traffic.
+the base functionality given to the players to compile their service. Also need
+to prevent the ability to spoof traffic.
 
 \paragraph*{Scoring Schemes} Our metric for scores:
 \begin{itemize}
@@ -505,37 +500,15 @@ functionality]. Also need to prevent the ability to spoof traffic.
 Both the communication and damage metrics exist to add other challenges to
 broaden the interest for the game.
 
-<<<<<<< HEAD
 \paragraph*{Internal Score Keeping - Base Functionality}
 Since the players would be compiling the service and had root to the server. We needed
 a way to check and making sure their service was keeping some form of necessary base 
-functionality and way to guarentee that the service was running. We did this
+functionality and way to guarantee that the service was running. We did this
 by creating a base functionality for each server that would report to the Score Keeping
 server the state of the server. If the base functionality passed it's tests it  would report 
 to the score keeper that that service is good. If it failed it would report that the service 
 did not meet base functionality would be reported to the score keeper it failed its test
 cases. If the service was off then it would not be able to notify the remote server at all
-=======
-\paragraph*{Score Keeping}
-Reasons for internal.
-Since they can modify their code completely. We need some way on their side of
-in check and making sure their service was keeping some form of base functionality.
-
-External
-Allows us to manage the scores and have other game play scoring aspects to the game.
-This communicates with the internal functionality checking.
-
-%Implementations
-Two main parts of the score keeping the base functionality within a service and
-the VM / server designated to doing.
-
-Base Functionality
-Check to state of the service.
-If it passed it would report to the score keeper that that service is good.
-If it failed it would report that the service did not meet base functionality would
-be reported to the score keeper.
-If the service was off then it would not be able to notify the remote server at all
->>>>>>> c697019b22230c640a0ae13f12ce843e63e2cbd1
 that the service was up and the score keeper server would default tot the service
 failing the its cases.
 
@@ -868,7 +841,7 @@ the 'Steganography' and 'Encrypted Game Image' tasks for the FTP Server as well 
 the 'Packet Sniffing' task for the Dummy Box.
 
 \subsection{Duke Nukem Scenario Compared to other CTFs}
-Our challenge was similar to other traditional CTFs except it did not have a defence
+Our challenge was similar to other traditional CTFs except it did not have a defense
 aspect to the game play. The Duke Nukem Scenario was most similar to the Hacker Olympics 
 ~\ref{HackingOlympics}. We also strayed on away from any challenges requiring knowledge
 of having to write an exploit.
@@ -926,10 +899,10 @@ future CTFs, and possibly starting a more official CTF team.
 
 \subsection{Game Play}
 Stick with the Star Trek Scenario ~\ref{stgameplay} game play large teams pitting against each other 
-but create a bigger breadth of tasks and ways of winning similar to [scenario 1].
-In addition create a visual front end to the game for the video game aspect.
-By doing this you could create diversity in the game to help encourage newcomers
-and retain them for longer.
+but create a bigger breadth of tasks and ways of winning similar the first
+scenario. In addition create a visual front end to the game for the video game
+aspect. By doing this you could create diversity in the game to help encourage
+newcomers and retain them for longer.
 
 \paragraph*{Visualization}
 Adding visualization to services (e.g. navigation, weapons, and shields) would merge the game
@@ -942,8 +915,8 @@ an easier way to socially interact with those who have more CTF experience.
 
 \subsubsection{VPN}
 Create a VPN for the Sec Lab specifically for this event so people can participate any where
-in the world. Make the event a multi school event. Similar to the [ucsb ctf]. This would
-also allow students to practice when the security lab is closed. This also could be used
+in the world. Make the event a multi school event. Similar to the iCTF. This
+would also allow students to practice when the security lab is closed. This also could be used
 for the design of long term (e.g. Quarter Long) CTFs.
 
 \subsection{Services}
@@ -969,7 +942,7 @@ but not completed.
 \paragraph*{Game Time Compile and Submit}
 Add a way for players to automatically compile their code and the snapshot of that code
 to the a repository. This would allow for a post game analysis of code. Possibly using
-code Covarity [eric's paper] to see how robust the code is and compare it to scores
+code Covarity to see how robust the code is and compare it to scores
 that team received.
 
 \subsection{Score Keeper}
@@ -979,19 +952,10 @@ The score keeper needs to be more surreptitious, internally (i.e. Base Functiona
 externally (i.e. score keeping server).
 
 \paragraph*{Internally}
-<<<<<<< HEAD
 To better deter players from reverse engineering the base functionality a polymorphic 
 engine could be added. This would not prevent the base functionality from being 
 reverse engineered so but it would act a large deterrent and put make hopefully
 make it easier for players to focus on playing the game than breaking the scoring system.
-=======
-To better deter players from reverse engineering our base functionality encrypted packing of the base functionality, would be an extra deterrent of people being
-able to reverse engineer the base functionality.
-
-\paragraph*{Communication}
-We had encryption and some form of basic authentication by using a password.
-Needs to be better.
->>>>>>> c697019b22230c640a0ae13f12ce843e63e2cbd1
 
 \paragraph*{Externally}
 Make a similar network design as the Ghetto Hackers did \cite{BlackHat2004} where the score
@@ -1009,14 +973,11 @@ could take advantage on scoring.
 
 \subsubsection{Scoring Metrics}
 Keeping the CTF to the same format as the Star Trek Scenario ~\ref{stscenario} it is
-hard to have a fair and balanced scoring scheme.
-If you can generate a flag capturing means of qualifying for points it is a bit easier
-[scenario one - scoring] however if the game play is similar to [game 2] then there
-needs to be a better metric than just checking the service up times. It would definitely 
-be a factor in the score but shouldn't really be the majority of the score.
-create a means of hacking the server having some form of potentially layered affect on their
-services so you can be more granulated or score and possibly modify points for scoring
-offensively and defensively
+hard to have a fair and balanced scoring scheme. If you can generate a flag
+capturing means of qualifying for points it is a bit easier however if the game play 
+is similar to then there needs to be a better metric than just checking the
+service up times. It would definitely be a factor in the score but shouldn't
+really be the majority of the score.
 
 \section{Other Suggestions And Things to Avoid}
 For things specific to our and possible future CTFs at Cal Poly, the following
@@ -1077,11 +1038,6 @@ potentially have enough interest to start an official Cal Poly CTF team in the n
 \bibliography{finalpaper}
 
 \newpage
-<<<<<<< HEAD
-
-Work Distribution
-
-=======
 \thispagestyle{empty}
 
 \section*{Work Distribution}
@@ -1115,6 +1071,5 @@ Work Distribution
    Weapons & Orion \\
    Communications & Orion \\
 \end{tabular}
->>>>>>> c697019b22230c640a0ae13f12ce843e63e2cbd1
 
 \end{document}
