@@ -26,7 +26,7 @@
  Dr. Philip Nico \\
  Cal Poly San Luis Obispo \vspace{10pt} \\ 
 }
-\date{December 3, 2011}
+\date{December 4, 2011}
 
 \maketitle
 
@@ -38,7 +38,7 @@ support from Raytheon, opened a new security lab. Recognizing the need for an
 increased focus in teaching security, the new lab provides a place for students
 to work on security related projects in a safe environment. To help christen the
 new lab, we set out to host the first hacker Capture the Flag competitions at
-Cal Poly. What resulted was two competitions; one occuring in May 2011, and the
+Cal Poly. What resulted was two competitions; one occurring in May 2011, and the
 other in November. The first modeled more typical hacker challenges while our
 second scenario consisted of completely new services with a Star Trek theme.
 This paper discusses some of different types of CTFs, describes the design of
@@ -135,21 +135,21 @@ attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
 
 \section{Objectives}
-The computer science corriculum at Cal Poly has only recently increased the
+The computer science curriculum at Cal Poly has only recently increased the
 number of security course offerings yet there is still a lack of security
-experience in the student body. This presents us with a difficulty when desiging
+experience in the student body. This presents us with a difficulty when designing
 the competitions. 
 
 Where as competitions like the iCTF and DEF CON CTF can design their
 competitions to be as challenging as the designers can make it, we aren't
-allowed this ``luxery''. Other competitions will always have experienced people
+allowed this ``luxury''. Other competitions will always have experienced people
 seeking them out and have a much larger pool of possible participants to pull
 from.
 
 For now our focus is on designing competitions mainly for Cal Poly students.
 This means we must find a difficult balance between how hard and how easy we can
 make our competitions. They can't be so hard as to discourage people from
-participating, and yet can't be too easy such that there's no challenege for
+participating, and yet can't be too easy such that there's no challenge for
 players. Competitions need to be playable, enjoyable, and challenging enough to
 expand a player's security knowledge.
 
@@ -213,7 +213,7 @@ the game):
         needed to know how PHP is interpreted by the browser and note they
         couldn't get the flag using \textit{cat}.
         \item \textbf{Bad Employee Email Password} - The web server also had a
-        link to the employee's webmail login (a feature to allow employees to
+        link to the employee's web-mail login (a feature to allow employees to
         get their email while not in the office). Reading through a series of
         bio pages for each of the Duke Nukem developer team members, one could
         find enough information to guess a particular employee's email password.
@@ -427,7 +427,7 @@ only two teams each with their own server to manage. We were even fortunate
 enough to provide both teams with their own rooms to work in secrecy. Both
 teams initially received identical copies of each service. Their goal to find
 and patch vulnerabilities in their services then turn around and exploit the
-same vulnerabilites in the other team. If a team could keep their services
+same vulnerabilities in the other team. If a team could keep their services
 responding and pass basic functionality tests they would score points. However,
 if their services become unresponsive or failed the tests, whether their own
 fault or the opposing team, they would stop receiving points while the opposing
@@ -441,20 +441,20 @@ score points for their team by shooting the other team's ship.
 
 Team formation also changed. Now, no one knew which team they were playing on
 until they showed up to the event. Each new person walking through the door was
-automatically assigned to the oposing team assigned to the person before them.
+automatically assigned to the opposing team assigned to the person before them.
 
 \subsubsection{Score Keeping}
 \label{stscorekeeping}
 Since the game play was more complex than just doing tasks and getting scoring
 for a flag. To have some form of live understanding the how the game is being
 played to create a scoring metric to have a winner/score. Plus they had
-admin access to their server and would have acess to source code and be compiling
+admin access to their server and would have access to source code and be compiling
 their service.
 
 We needed the score keeping to be more difficult to break than to play the game 
 within the time frame of the game. To do this we needed to make the score keeper
-as invisible as possible for the server and the score keeping partialy handled with
-the base funcitonality given to the players to compile their service. [ see base 
+as invisible as possible for the server and the score keeping partially handled with
+the base functionality given to the players to compile their service. [ see base 
 functionality]. Also need to prevent the ability to spoof traffic.
 
 \paragraph*{Scoring Schemes} Our metric for scores:
@@ -464,11 +464,11 @@ functionality]. Also need to prevent the ability to spoof traffic.
   time each service was responding to requests and passing the base-functionality tests. 
   \item \textbf{Communications} - Secondary encryption challenges.
   \item \textbf{Damage Dealt} - Teams may gain points not by hacking but by
-  playing the game and fireing weapons as the opposing team's ship.
+  playing the game and firing weapons as the opposing team's ship.
 \end{itemize}
 
-Both the communication and damange metics exist to add other challenges to
-broden the interest for the game.
+Both the communication and damage metrics exist to add other challenges to
+broaden the interest for the game.
 
 \paragraph*{Score Keeping}
 Reasons for internal.
@@ -477,13 +477,13 @@ in check and making sure their service was keeping some form of base functionali
 
 External
 Allows us to manage the scores and have other game play scoring aspects to the game.
-This communicates witht he internal functionality checking.
+This communicates with the internal functionality checking.
 
 %Implementations
 Two main parts of the score keeping the base functionality within a service and
 the VM / server designated to doing.
 
-Base Functionality 
+Base Functionality
 Check to state of the service.
 If it passed it would report to the score keeper that that service is good.
 If it failed it would report that the service did not meet base functionality would
@@ -786,8 +786,8 @@ and retain them for longer.
 Adding visualization to services (e.g. navigation, weapons, and shields) would merge the game
 between a hacking competition and video game similar to Hack Fortress \cite{HackFortress}.
 We fill by adding this to the Star Trek Scenario ~\ref{stscenario} would not only
-help encourage new players to get involved but help retain newcommers by having
-an easier way to socially interact with thos who have more CTF experience.
+help encourage new players to get involved but help retain newcomers by having
+an easier way to socially interact with those who have more CTF experience.
 
 \subsection{Network}
 
@@ -806,7 +806,7 @@ to the service and making the service not as straight forward to secure.
 \paragraph*{Denial of Service}
 One of the vital issues with the services of Star Trek Scenario ~\ref{stscenario} is the
 score keeping and over arching design was not able to prevent a teams denial of service
-from other teams. This could be fixed by modifiying the score keeper to be integrated with
+from other teams. This could be fixed by modifying the score keeper to be integrated with
 the a router \cite{BlackHat2004}, or wrapping all send and recv socket calls which
 would be required to be used by the teams so that the data is sent to Score Keeper 
 to make sure packets are being accepted and responded to accordingly for all teams.
@@ -825,11 +825,11 @@ that team received.
 \subsection{Score Keeper}
 
 \subsubsection{Obfuscation}
-The score keeper needs to be more sureptitious, internally (i.e. Base Functionality) and
+The score keeper needs to be more surreptitious, internally (i.e. Base Functionality) and
 externally (i.e. score keeping server).
 
 \paragraph*{Internally}
-To better deter players from reverse engineering our base functionality ncrypted packing of the base functionality, would be an extra deterant of people being
+To better deter players from reverse engineering our base functionality encrypted packing of the base functionality, would be an extra deterrent of people being
 able to reverse engineer the base functionality.
 
 \paragraph*{Communication}
@@ -869,7 +869,7 @@ been covered in a previous section or are important enough to be reiterated:
     \item \textbf{No Experience Necessary?} We've tried using it in while
     advertising for both competitions, but no matter what, it didn't seem to
     help get the crowds we expected. There may be varying understandings of the
-    phrase, but something along the same lines should stressed to those warry
+    phrase, but something along the same lines should stressed to those wary
     to participate.
     \item \textbf{Room Reservations} Reserve Bonderson rooms WELL in advance and
     confirm the reservation at least a month out. Don't forget to double check
@@ -900,7 +900,38 @@ been covered in a previous section or are important enough to be reiterated:
 \bibliography{finalpaper}
 
 \newpage
+\thispagestyle{empty}
 
-Work Distrobution
+\section*{Work Distribution}
+
+\paragraph*{Scenario 1}
+
+\begin{tabular}{l r}
+   Game Master & Orion \\
+   Local Game Daemons & Dirk \& Orion \\
+   Octobrain & Orion \\
+   Octobrain PHP & Dirk \\
+   Bad Employee Password & Dirk \\
+   Plain Text Password Reset & Dirk \\
+   Web Site Steganography & Orion \\
+   John Flagstaff & Dirk \\
+   HR Steganography & Dirk \\
+   FTP Steganography & Orion \\
+   FTP Encrypted Image & Orion \\
+   Telnet & Orion \\
+   Packet Sniffing & Orion \\
+   Network & Dirk \\
+\end{tabular}
+
+\paragraph*{Scenario 2}
+\begin{tabular}{l r}
+   Score Keeper & Orion \\
+   Power & Dirk \\
+   Engines & Dirk \\
+   Navigation & Dirk \\
+   Shields & Orion \\
+   Weapons & Orion \\
+   Communications & Orion \\
+\end{tabular}
 
 \end{document}
