@@ -77,25 +77,18 @@ without mounds of textbooks.
 in Las Vegas \cite{DEFCONCTF}. The format, theme, and scenario has changed over
 the years as the organizers change hands every few years.
 
-Ghetto hackers - one groups who ran the DEF CON 10 11 12 of the notable groups hosting the ctf
-first group to greatly improve the scoring of the game and makings a more
-realistic scoring system
-STAR Central Router - 8 connections
-8 teams scattered around a STAR router
-each team gets one CAT5 cable that connects into a computer they built
-it has 8 network interfaces - each network interface is attached inside on a linux to a
-usermode computer - 9 user mode for the score board - 10th to connect them all together
-none of the devices have the ablitity to cross networking information together
-except for small access ports. On the small access ports it  has forward and reverse NAT. So
-everything connects to eachother from the same ip address. It is impossible to tell
-the difference between the score board and other teams. Use score board to force a 
-network service. Best defense is to quit which doesn't cut it inthe corporate world.
+\paragraph*{Ghetto Hackers} Is the group who ran the DEF CON CTF for DEF CON 10, 11, and 12
+\cite{BlackHat2004}. They took a very interesting approach to score keeping especially in 
+relation with their network topology. To prevent teams being able to directly connecting to 
+the score keeping server they  put the score keeper behind the router which had bi-directional
+ NAT forwarding so there was no way to distinguish and IP address that was coming from another
+ team or from the score keeper \cite{BlackHat2004}.
 
-
-Notable Changes
-- they put there score keeper behind / apart of the nat
-so there was no way that a player could directly interact witht eh score keeper
-
+\paragraph*{Hacker Fortress} This is a Hacker CTF that has been held at Schmoo Con 
+\cite{HackerFortress}. It fuses Team Fortress 2 (i.e. a team based first person shooting
+video game) and a Hacker CTF similar the Hacking Olympics ~\ref{Hacking Olympics}. 
+The game play is designed so those playing Team Fortress 2 have an impact on the progress of
+ those playing the CTF and vice versa.
 
 \paragraph*{Educational CTFs} There are a few hacking CTFs designed specifically
 for the course laboratory setting. Georgia Tech's graduate course ECS 6612,
@@ -136,8 +129,8 @@ we've been able to find and is our long term goal.
 of CTFs ranging from wireless to cryptanalysis, and hardware hacking to social
 engineering.
 
-\paragraph*{Hacking Olympics} Lastly, there are even hacking competitions
-(\cite{Cipher}, \cite{SMPCTF}) which don't require servers for participants to
+\paragraph*{Hacking Olympics} \label{HackingOlympics} Lastly, there are even hacking 
+competitions (\cite{Cipher}, \cite{SMPCTF}) which don't require servers for participants to
 attack and defend. Instead they offer a web based CTF with a number of
 independent puzzle challenges to test a team's hacking knowledge and abilities.
 
@@ -162,14 +155,10 @@ expand a player's security knowledge.
 
 To improve our conditions, we wanted our CTFs to
 
-%Due to the lack of security classes and a security focus apart of the Computer
-%Science Department ciriculum, we wanted host two CTFs to
-
 \begin{itemize}
-    \item See if there were other students interested in hacker capture the
-    flags
-    \item Generate an interest on campus for security and hacker capture the
-    flag competitions
+    \item See if there were other students interested in hacker capture the flags
+    \item Generate an interest on campus for security and hacker capture the 
+      flag competitions
     \item Provide a fun way of hacking 
     \item Introduce security concepts and skills to our peers
     \item Create CTFs that allow a wide range of skill levels to participate
@@ -385,6 +374,7 @@ something like BackTrack by building our own services no one had ever worked
 with before. 
 
 \section{The Star Trek Scenario}
+\label{stscenario}
 \subsection{Objectives}
 After the first CTF competition, we wanted to make our next focus to be on
 solving two problems:
@@ -792,6 +782,13 @@ In addition create a visual front end to the game for the video game aspect.
 By doing this you could create diversity in the game to help encourage newcomers
 and retain them for longer.
 
+\paragraph*{Visualization}
+Adding visualization to services (e.g. navigation, weapons, and shields) would merge the game
+between a hacking competition and video game similar to Hack Fortress \cite{HackFortress}.
+We fill by adding this to the Star Trek Scenario ~\ref{stscenario} would not only
+help encourage new players to get involved but help retain newcommers by having
+an easier way to socially interact with thos who have more CTF experience.
+
 \subsection{Network}
 
 \subsubsection{VPN}
@@ -802,17 +799,24 @@ for the design of long term (e.g. Quarter Long) CTFs.
 
 \subsection{Services}
 
-\subsubsection{Visualization}
-Possibly add some form of graphical front-end end to game. Creating a merge between
-a hacking competition and video game. This would be used to help encourage new players
-to get involved with future CTFs or security.
+\paragraph*{Adding Depth}
+The custom services provided to players needs to have added functionality to add depth
+to the service and making the service not as straight forward to secure.
 
-\subsubsection{Library}
+\paragraph*{Denial of Service}
+One of the vital issues with the services of Star Trek Scenario ~\ref{stscenario} is the
+score keeping and over arching design was not able to prevent a teams denial of service
+from other teams. This could be fixed by modifiying the score keeper to be integrated with
+the a router \cite{BlackHat2004}, or wrapping all send and recv socket calls which
+would be required to be used by the teams so that the data is sent to Score Keeper 
+to make sure packets are being accepted and responded to accordingly for all teams.
+
+\paragraph*{Library}
 Create libraries to make it easier to create new services. Possibly make a generic base
 functionality. This way it can be easier to create new services and so more time can
 be spent on adding depth to the functionality of the service.
 
-\subsubsection{Game Time Compile and Submit}
+\paragraph*{Game Time Compile and Submit}
 Add a way for players to automatically compile their code and the snapshot of that code
 to the a repository. This would allow for a post game analysis of code. Possibly using
 code Covarity [eric's paper] to see how robust the code is and compare it to scores
@@ -821,11 +825,11 @@ that team received.
 \subsection{Score Keeper}
 
 \subsubsection{Obfuscation}
-The score keeper needs to be hidden better. Internally within the files and externally
-as the score keeping server.
+The score keeper needs to be more sureptitious, internally (i.e. Base Functionality) and
+externally (i.e. score keeping server).
 
 \paragraph*{Internally}
-Encrypted packing of the base functionality, would be an extra deterant of people being
+To better deter players from reverse engineering our base functionality ncrypted packing of the base functionality, would be an extra deterant of people being
 able to reverse engineer the base functionality.
 
 \paragraph*{Communication}
