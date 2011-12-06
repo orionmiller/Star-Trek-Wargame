@@ -40,7 +40,7 @@ to work on security related projects in a safe environment. To help christen the
 new lab, we set out to host the first hacker Capture the Flag competitions at
 Cal Poly. What resulted was two competitions; one occurring in May 2011, and the
 other in November. The first modeled more typical hacker challenges while our
-second scenario consisted of completely new services with a Star Trek theme.
+second scenario consisted of custom services with a Star Trek theme.
 This paper discusses some of different types of CTFs, describes the design of
 each of our CTF scenarios and the problems incurred, suggests improvements to
 game design for the next competition, an analysis or our implementations'
@@ -63,7 +63,7 @@ capture the flag competitions.
 
 \section{A \textit{Hacker} Capture the Flag Competition}
 The idea of a \textit{Hacker} Capture the Flag (CTF) competition plays off of
-the traditional child's version. A hacker CTF has a number of different versions
+the traditional child's game. A hacker CTF has a number of different versions
 with the most typical employing a number of servers to ``challenge participants
 to attack and defend computing resources while solving complex technical
 problems'' \cite{HackingCompetitionsForSecurityEducation}. In a university
@@ -80,9 +80,9 @@ the years as the organizers change hands every few years.
 \paragraph*{Ghetto Hackers} 
 \label{GhettoHackers}
 Is the group who ran the DEF CON CTF for DEF CON 10, 11, and 12
-\cite{BlackHat2004}. They took a very interesting approach to score keeping
+\cite{BlackHat2004}. They took an interesting approach to score keeping
 especially in relation with their network topology. To prevent teams being able
-to directly connecting to the score keeping server they  put the score keeper
+to directly connect the score keeping server by putting the score keeper
 behind the router which had bi-directional NAT forwarding so there was no way to
 distinguish an IP address from another team or the score keeper
 \cite{BlackHat2004}.
@@ -140,11 +140,11 @@ independent puzzle challenges to test a team's hacking knowledge and abilities.
 \section{Objectives}
 \label{MainObjectives}
 The computer science curriculum at Cal Poly has only recently increased the
-number of security course offerings yet there is still a lack of security
+number of security course offerings, yet there is still a lack of security
 experience in the student body. This presents us with a difficulty when designing
 the competitions. 
 
-Where as competitions like the iCTF and DEF CON CTF can design their
+Competitions like the iCTF and DEF CON CTF can design their
 competitions to be as challenging as the designers can make it, we aren't
 allowed this ``luxury''. Other competitions will always have experienced people
 seeking them out and have a much larger pool of possible participants to pull
@@ -170,14 +170,14 @@ To improve our conditions, we wanted our CTFs to
 
 Additional benefits of the Hacker CTFs include making use of the new Security
 Lab on campus and help develop a hacker and security culture with White Hat
-(the student run hacking and cyber-security club at Cal Poly).
+(i.e. the student run hacking and cyber-security club at Cal Poly).
 
 \section{The Duke Nukem Scenario}
 \subsection{Objectives}
-Since this was our first CTF we wanted and because the lack of cyber security
-on campus we felt that putting an emphasis on a wide array of challenges
-would increase participation and allow for newcomers to have a good chance of 
-having a good chance of doing well on game day.
+Since this was our first CTF and because the lack of cyber security
+on campus, we felt that putting an emphasis on a wide array of challenges
+would increase participation and allow newcomers to have a good chance of doing well 
+on game day.
 
 \paragraph*{Security 101}To help our peers prepare for the CTF we teamed up with
 White Hat to teach them some basic security concepts. We did this by providing a
@@ -186,34 +186,33 @@ in the CTF.
 
 \subsection{Design}
 \subsubsection{Game Play}
-The set of the game was players were given a website that directed had a release of
-'Duke Nukem Forever' releasing. There goal was to complete a series of tasks
-to progress through variety of hacking challenges and progress to eventually get
-the copy of the new Duke Nukem game.
+Players were given a website of a pseudo company that created was releasing the up coming
+'Duke Nukem Forever' game. Their goal was to complete and progress through a variety of 
+hacking tasks and eventually acquire a copy of the new Duke Nukem game.
 
 To help prevent players from getting stuck we made each task have hints to multiple
-up coming tasks. This was to prevent a linear progression of tasks. It was to prevent
-the lack of knowledge or technical ability of one task preventing them from winning
+up coming tasks. This was to prevent a linear progression of tasks. It was to counter
+the lack of knowledge or technical ability a task from preventing players winning
 the competition. The flags for each task were consistent (alpha numeric key X number
 of chars long) and usually out of place to notify players they have accomplished
 the task.
 
 \subsubsection{Tasks}
 \label{dntasks}
-The planned exploits and seeded flags for each of the servers is listed and
-described below (note not all of the exploits were implemented by the start of
+The planned vulnerabilities and seeded flags for each of the servers is listed and
+described below (note not all of the vulnerabilities were implemented by the start of
 the game):
 
 \begin{enumerate}
   \item Web Server
       \begin{itemize}
-        \item \textbf{Octobrain} - The first exploit to find. A PHP web page
+        \item \textbf{Octobrain} - The first vulnerability to find. A PHP web page
         used a \textit{system()} function to execute user input on the system
         through the \textit{cowsay} command. With no input sanitation, users
         would be able to execute other command on the system. A simple listing
         of the current directory would list the file ``FLAG.txt'' which
         contained the first flag.
-        \item \textbf{Octobrain PHP} - Using the same exploit as above, another
+        \item \textbf{Octobrain PHP} - Using the same vulnerablity as above, another
         file named ``FLAG.php'' also contained another flag. However, users
         needed to know how PHP is interpreted by the browser and note they
         couldn't get the flag using \textit{cat}.
@@ -272,14 +271,14 @@ for a completed task. The front end connected to a MySQL database to validate
 the flag and update the team's score accordingly. The database tracked the
 each team's score, every flag submission for each team, current flags for every
 task, and the value of each task. The back-end server of the Game Master would
-inform a Local Points Daemon (LPD), also written in Python, a task was completed
-by a team so the LPD could generate a new flag, update the task to contain the
+inform a Local Points Daemon, also written in Python, that a task was completed
+by a team so the Local Points Daemon could generate a new flag, update the task to contain the
 new flag, and then report back the new flag. Once the GM received a new flag
-from the LPD it would update it in the MySQL database.
+from the Local Points Daemon it would update it in the MySQL database.
 
 \paragraph*{Local Points Daemon}
-A Local Points Daemon (LPD) would run on each VM and would listen for the game master
-to tell LPD that it needed to update the flag for a specific task. It would then call
+A Local Points Daemon (LPD) would run on each VM and would listen for the GM
+to tell the LPD that it needed to update the flag for a specific task. It would then call
 our flag generator program to get a new flag, update the flag for the specific
 task and then let the GM know the new flag for the specified task.
 
@@ -339,8 +338,8 @@ covered. Groups were originally limited to at most three people, but as the
 easier flags were all discovered participants began complaining about not
 finding anything else. A few hinted that outside of the Security 101 sessions
 they were very inexperienced and would like to join with the other groups
-finding some of the harder flags to learn their techniques. After which, we
-allowed the teams to grow to however large they liked.
+finding some of the harder flags. After which, we allowed the teams to grow 
+however large they liked.
 
 There were two teams with experienced players and in each team someone with a
 BackTrack Live CD. Since our servers were unpatched Ubuntu 10.10 installations,
@@ -384,7 +383,7 @@ use.
 
 \paragraph*{Free Virtual Machine Servers} The server we were using to manage our
 virtual machines was free and thus limited in the scale of available features.
-Recall originally our plans called for a network setup such that the company's
+Originally our plans called for a network setup such that the company's
 Web server was on all VLANs in the network (see Figure
 ~\ref{fig:dukeNukemIntranetDiagram}). The limited feature set of our Virtual
 Machine server did not include the ability to setup network cards for use with
@@ -402,7 +401,7 @@ tools. Finding exploits in the services was not within the scope of this
 competition. 
 
 To prevent the use of tools which do all of the ``hacking'' for you, we decided
-to change the design of the next CTF to the point they wouldn't be able to use
+to change the design of the next CTF such that they wouldn't be able to use
 something like BackTrack by building our own services no one had ever worked
 with before. 
 
@@ -458,7 +457,7 @@ allowed us to make changes to the game play to focus more on team based play.
 The new game design was made to resemble a WarGame style of play consisting of
 only two teams each with their own server to manage. We were even fortunate
 enough to provide both teams with their own rooms to work in secrecy. Both
-teams initially received identical copies of each service. Their goal to find
+teams initially received identical copies of each service. Their goal was to find
 and patch vulnerabilities in their services then turn around and exploit the
 same vulnerabilities in the other team. If a team could keep their services
 responding and pass basic functionality tests they would score points. However,
@@ -486,10 +485,10 @@ their server and a way to keep them honest as they would be re-writing their
 source code and compiling their service.
 
 We needed the score keeping to be more difficult to break than to play the game 
-within the time frame of the game. To do this we needed to make the score keeper
+within the time frame of the competition. To do this we needed to make the score keeper
 as invisible as possible for the server and the score keeping partially handled with
-the base functionality given to the players to compile their service. Also need
-to prevent the ability to spoof traffic.
+the base functionality given to the players to compile their service. Lastly we needed
+to prevent teams spoof score keeping traffic.
 
 \paragraph*{Scoring Schemes} Our metric for scores:
 \begin{itemize}
@@ -505,35 +504,32 @@ Both the communication and damage metrics exist to add other challenges to
 broaden the interest for the game.
 
 \paragraph*{Internal Score Keeping - Base Functionality}
-Since the players would be compiling the service and had root to the server, we
-needed a way to check and making sure their service were keeping some form of
-necessary base functionality and guarantee the service was running. We did this
-by creating a base functionality requirements for each server that would report
-to the Score Keeping server the current state of the service. If the base
-functionality passed its tests it would report to the score keeper that that
-service is good. If it failed it would report that the service did not meet base
-functionality would be reported to the score keeper it failed its test cases. If
-the service was down, then it would not be able to notify the remote server at
-all that the service was up and the score keeper server would default to the
-service failing the its cases.
+Since the players would be compiling the service and had root on the server, we
+needed a way to gaurentee their service was running and keeping some form of
+necessary base functionality. We did this by creating base functionality 
+requirements for each service that would report to the Score Keeping server the 
+current state of the service. The results of the base functionality tests were reported
+to the Score Keeping server. If the service was down, then it would not be able to 
+notify the server at all that the state of the service, so the Score Keeper 
+would default the service as failing the its tests. Tests were ran every 60 seconds.
 
 \paragraph*{Score Keeping Server}
 Written in Python, the sole purpose of the server was to manage and update the
 scores for each team. It would listen for the state of each service and noting
-whether it was passing or failing its functionality testing. If a service
+whether it was passing or failing its functionality tests. If a service
 did not report whether it was passing or failing its test cases it would
-default to that the service was down and therefore not passing its test cases.
+default to the service being down and therefore not passing its test cases.
 It would also listen for damage from the Damage Manager and update scores
-accordingly. It managed scores and relevant information about the game by
+accordingly. It managed and stored all information about the game by
 connecting to the Redis Database. Scores were updated every 60 seconds.
 
 \paragraph*{Damage Manager}
 The Damage Manager was added after our design phase. It was on the Score
 Keeping Virtual Machine and provided the amount of damage a ship was dealt with
 a period of time. If a team shot its opponent's ship service, it would check to
-see if their opponent's ship was within range and if the service that was
-being shot at by the Weapons service was up. If it met both of those cases it
-would record it as a hit.
+see if their opponent's ship was within range and if the shield for that service was
+down. If both of those cases were met it would record it as a hit. 
+Damages were reported to the Score Keeping server every 60 seconds.
 
 \paragraph*{Redis Database}
 This housed all the information related to the game. It contained the current
@@ -543,7 +539,7 @@ The MySQL database was dropped from the last competition because the lack of
 documentation with PyMySQL to get the new code to work with the new Score
 Keeping server.
 
-\paragraph*{Secure Communication and Score Verification}
+\paragraph*{Secure Traffic and Score Verification}
 Since the base functionality would be updating the state of the service to the
 Score Keeping server we needed to make sure that players could not spoof these
 validations. What we did to protect against this was making the connection
@@ -552,8 +548,8 @@ wrapped in an SSL connection.
 
 This protected the information going across the network from being sniffed but it 
 didn't prevent a team from connecting to the Score Keeping server and sending it bogus 
-data. To prevent bogus data we required each service to send a pass phrase which
-was specific for each team to the score keeper to verify it was our code that
+data. To prevent bogus data we required each service to send a pass phrase, which
+was specific for each team, to the score keeper to verify it was our code that
 was sending the status of a service.
 
 Lastly to prevent a team from reverse engineering and just finding the pass phrase in
@@ -848,43 +844,47 @@ privileges and without Apache, PHP, or MySQL installed.
 \paragraph*{Challenges Not Met}
 We tried to meet all tasks listed in Section~\ref{dntasks}, however we were
 unable to finish the 'Steganography' and 'Encrypted Game Image' tasks for
-the FTP Server as well as the 'Packet Sniffing' task for the Dummy Box.
+the FTP Server as well as the 'Packet Sniffing' task for the Dummy Box. 
+The absence of these tasks did not effect game play as no team made it far enough 
+for these tasks to become necessary.
 
 \subsection{Duke Nukem Scenario Compared to other CTFs}
 Our challenge was similar to other traditional CTFs except it did not have a
 defense aspect to the game play. The Duke Nukem Scenario was most similar to the
 Hacker Olympics discussed in Section ~\ref{HackingOlympics}. We also strayed
-away from any challenges requiring knowledge of having to write an exploit.
+away from any challenges requiring knowledge of having to write an exploit
+since this was outside the scope of knowledge and technical ability for almost all
+participants.
 
 \paragraph*{Players Reaction}
 Roughly half of our attendants were lost on how to complete most of the CTF
 tasks but those who consistently attended our 'Security 101' sessions appeared
 to be well equipped to participate in the CTF.
 
-Everyone seemed to be engaged in the CTF and actively curious and trying to find 
+Everyone seemed engaged in the CTF, and curious to find 
 ways to solve the given tasks.
 
 We intended for attendees to play in teams. We provided a team sign up sheet
-prior and encouraged joining ad hoc teams at the competition however most were
+prior and encouraged joining teams ad hoc. However most were
 reluctant to work in teams. 
 
 At the end of the competition everyone was excited for our up coming CTF and
-appeared to have a serious interest in Security.
+appeared to have a serious interest in security.
 
 \paragraph*{Future Uses}
 This game format would be perfect for casual play over a long duration for
 students. By adding more tasks, more features to the Score Keeper, and some form
-of administrative system to players could start and stop as they wish. Since
-they could work at their own pace and improve their skills it could be added to
-as another platform of instruction for the 'Security 101' sessions. 
+of administrative system, players could start and stop as they wish. Since
+they could work at their own pace and improve their skills on there own time it could be 
+added as an extended platform of instruction for the 'Security 101' sessions. 
 
 \subsection{Star Trek Scenario}
 
 \paragraph*{Services Not Met}
-We were unable to finish all the services planned in Section~\ref{stscenario}.
+We were unable to finish all the services planned in section~\ref{stscenario}.
 The 'Communications', 'Weapons', and 'Shields' services were not completed by
-the start of the competition. This impeded some of the video game play aspect of
-our intended game play. However it did not stop the game from proceeding.
+the start of the competition. This impeded some of the video game play aspects of game. 
+However it did not stop the game from proceeding.
 
 \subsection{Star Trek Scenario Compared to other CTFs}
 The Star Trek scenario was similar to classic CTFs (e.g. DEF CON CTF \cite{DEFCONCTF}) 
@@ -892,9 +892,9 @@ however the key difference was that our scoring was based on up-times not by tea
 acquiring and submitting flags.
 
 \paragraph*{Players Reaction}
-In this competition even though the players stayed for a longer time, all
+In this competition even though the players stayed for a longer time, most 
 players appeared to be ill-equipped to participate in this competition. More
-importantly they were reluctant to be try and mess around with the services to
+importantly they were reluctant to try and mess around with the services to
 find security holes. Instead of being curious and creative it felt like that
 they were expecting us to tell them exactly what to do. Some complained that
 they be given the source code to the base functionality rather than
@@ -1033,13 +1033,13 @@ been covered in a previous section or are important enough to be reiterated:
 \section{Conclusion}
 There was not enough time between the two of us to complete everything for both
 competitions. We were not able to write perfect code as suggested in 'Hosting a Hacking 
-Challenge' \cite{HostingHackingChallenge} and some of our base design fell apart. 
+Challenge' \cite{HostingHackingChallenge} and some of our base designs fell apart. 
 Creating a more thought through design and robust CTF while meeting our main objectives 
 ~\ref{MainObjectives} would require a larger development team and having at least 
-two quarters for thorough testing and development. With current lack of security classes
-apart of the Computer Science Department it is highly advised to provide 'Security 101' 
-sessions related to the upcoming CTF. We were able to meet our over arching 
-objectives by generating interest our peers to participate in CTFs and we may 
+two quarters for thorough testing and development. With the current lack of security classes
+within the Computer Science Department it is highly advised to provide security workshops 
+related to the upcoming CTF. We were able to meet our over arching 
+objectives by generating interest amongst our peers to participate in CTFs and we may 
 potentially have enough interest to start an official Cal Poly CTF team in the near future.
 
 \newpage
