@@ -508,10 +508,11 @@ Since the players would be compiling the service and had root on the server, we
 needed a way to gaurentee their service was running and keeping some form of
 necessary base functionality. We did this by creating base functionality 
 requirements for each service that would report to the Score Keeping server the 
-current state of the service. The results of the base functionality tests were reported
-to the Score Keeping server. If the service was down, then it would not be able to 
-notify the server at all that the state of the service, so the Score Keeper 
-would default the service as failing the its tests. Tests were ran every 60 seconds.
+current state of the service. The results of the base functionality tests were
+reported to the Score Keeping server. If the service was down, then it would not
+be able to notify the server at all of the state of the service, so the Score
+Keeper would default the service as failing its tests. Tests were ran every 60
+seconds.
 
 \paragraph*{Score Keeping Server}
 Written in Python, the sole purpose of the server was to manage and update the
@@ -525,11 +526,11 @@ connecting to the Redis Database. Scores were updated every 60 seconds.
 
 \paragraph*{Damage Manager}
 The Damage Manager was added after our design phase. It was on the Score
-Keeping Virtual Machine and provided the amount of damage a ship was dealt with
-a period of time. If a team shot its opponent's ship service, it would check to
-see if their opponent's ship was within range and if the shield for that service was
-down. If both of those cases were met it would record it as a hit. 
-Damages were reported to the Score Keeping server every 60 seconds.
+Keeping Virtual Machine and provided the amount of damage a ship was dealt
+within a period of time. If a team shot its opponent's ship service, it would
+check to see if their opponent's ship was within range and if the shield for
+that service was down. If both of those cases were met it would record it as a
+hit. Damages were reported to the Score Keeping server every 60 seconds.
 
 \paragraph*{Redis Database}
 This housed all the information related to the game. It contained the current
@@ -542,9 +543,9 @@ Keeping server.
 \paragraph*{Secure Traffic and Score Verification}
 Since the base functionality would be updating the state of the service to the
 Score Keeping server we needed to make sure that players could not spoof these
-validations. What we did to protect against this was making the connection
-between the base functionality for a service and the Score Keeping server was
-wrapped in an SSL connection.
+validations. What we did to protect against this was wrapping the connection
+between the base functionality for a service and the Score Keeping server in an
+SSL connection.
 
 This protected the information going across the network from being sniffed but it 
 didn't prevent a team from connecting to the Score Keeping server and sending it bogus 
@@ -554,7 +555,7 @@ was sending the status of a service.
 
 Lastly to prevent a team from reverse engineering and just finding the pass phrase in
 memory we wrote a series of macros to form a 2 way hash so we could have the pass phrase
-obfuscated. The pass-phrase was stored hashed in the provided object file and
+obfuscated. The pass phrase was stored hashed in the provided object file and
 un-hashed just before the sending of any data.
 
 \subsubsection{Services}
@@ -909,88 +910,92 @@ having future CTFs, and possibly starting a more official CTF team.
 \section{The Next Ideal Solution}
 
 \subsection{Game Play}
-Stick with the Star Trek Scenario ~\ref{stgameplay} game play large teams
-pitting against each other but create a bigger breadth of tasks and ways of
-winning similar the first scenario. In addition create a visual front end to
-the game for the video game aspect. By doing this you could create diversity in
-the game to help encourage newcomers and retain them for longer.
+Stick with the Star Trek Scenario game play (section ~\ref{stgameplay}) style of
+large teams pitted against each other but create a bigger breadth of tasks and
+ways of winning similar to the first scenario. In addition create a visual front
+end to the game for the video game aspect. By doing this you could create
+diversity in the game to help encourage newcomers and retain them for longer.
 
 \paragraph*{Visualization}
 Adding visualization to services (e.g. navigation, weapons, and shields) would
 merge the game between a hacking competition and video game similar to Hack
-Fortress \cite{HackFortress}. We fill by adding this to the Star Trek Scenario
-~\ref{stscenario} would not only help encourage new players to get involved but
-help retain newcomers by having an easier way to socially interact with those
-who have more CTF experience.
+Fortress \cite{HackFortress}. We feel by adding this to the Star Trek Scenario
+(section ~\ref{stscenario}) would not only help encourage new players to get
+involved but help retain newcomers by having an easier way to socially interact
+with those who have more CTF experience.
 
 \subsection{Network}
 
 \subsubsection{VPN}
 Create a VPN for the Sec Lab specifically for this event so people can
-participate any where in the world. Make the event a multi school event.
-Similar to the iCTF. This would also allow students to practice when the
+participate any where in the world. Making the compitition a multi school event
+similar to the iCTF. This would also allow students to practice when the
 security lab is closed. This also could be used for the design of long term
-(e.g. Quarter Long) CTFs.
+(e.g. quarter long) CTFs.
 
 \subsection{Services}
 
 \paragraph*{Adding Depth}
-The custom services provided to players needs to have added functionality to add depth
-to the service and making the service not as straight forward to secure.
+The custom services provided to players needs to have added functionality to
+add depth to the service and making the service not as straight forward to
+secure.
 
 \paragraph*{Denial of Service}
-One of the vital issues with the services of Star Trek Scenario ~\ref{stscenario} is the
-score keeping and over arching design was not able to prevent a teams denial of service
-from other teams. This could be fixed by modifying the score keeper to be integrated with
-the a router \cite{BlackHat2004}, or wrapping all send and recv socket calls which
-would be required to be used by the teams so that the data is sent to Score Keeper 
-to make sure packets are being accepted and responded to accordingly for all teams.
+One of the vital issues with the services of Star Trek Scenario
+(section ~\ref{stscenario}) is the score keeping and over arching design was not
+able to prevent a teams denial of service from other teams. This could be fixed
+by modifying the score keeper to be integrated with a router
+\cite{BlackHat2004}, or wrapping all send and receive socket calls which would
+be required to be used by the teams so that the data is sent to Score Keeper to
+make sure packets are being accepted and responded to accordingly for all teams.
 
 \paragraph*{Service Creation Libraries}
-Create libraries to make it easier to create new services. Possibly make a generic base
-functionality. This way it can be easier to create new services and so more time can
-be spent on adding depth to the functionality of the service. This has been started
-but not completed.
+Create libraries to make it easier to create new services. Possibly make a
+generic base functionality. This way it can be easier to create new services and
+so more time can be spent on adding depth to the functionality of the service.
+This has been started but not completed.
 
 \paragraph*{Game Time Compile and Submit}
-Add a way for players to automatically compile their code and the snapshot of that code
-to the a repository. This would allow for a post game analysis of code. Possibly using
-code Covarity to see how robust the code is and compare it to scores
-that team received.
+Add a way for players to automatically compile their code and the snapshot of
+that code to the a repository. This would allow for a post game analysis of
+code. Possibly using code Covarity to see how robust the code is and compare it
+to scores that team received.
 
 \subsection{Score Keeper}
 
 \subsubsection{Obfuscation}
-The score keeper needs to be more surreptitious, internally (i.e. Base Functionality) and
-externally (i.e. score keeping server).
+The score keeper needs to be more surreptitious, internally (i.e. Base
+Functionality) and externally (i.e. score keeping server).
 
 \paragraph*{Internally}
-To better deter players from reverse engineering the base functionality a polymorphic 
-engine could be added. This would not prevent the base functionality from being 
-reverse engineered so but it would act a large deterrent and put make hopefully
-make it easier for players to focus on playing the game than breaking the scoring system.
+To better deter players from reverse engineering the base functionality a
+polymorphic engine could be added. This would not prevent the base functionality
+from being reverse engineered, but it would act as large deterrent and make it
+easier for players to focus on playing the game rather than breaking the scoring
+system.
 
 \paragraph*{Externally}
-Make a similar network design as the Ghetto Hackers did \cite{BlackHat2004} where the score
-keeper sits behind a router with bi-direction NAT forwarding. This would be another 
-project in itself however it would have enormous benefits to the robustness of score keeping
-as stated in ~\ref{GhettoHackers}.
+Make a similar network design as the Ghetto Hackers did \cite{BlackHat2004}
+where the score keeper sits behind a router with bi-direction NAT forwarding.
+This would be another project in itself however it would have enormous benefits
+to the robustness of score keeping as stated in section ~\ref{GhettoHackers}.
 
 \paragraph*{Communication}
-Even though the communication between base functionality and the score keeper used
-SSL to transmit data across the network securely and services had to authentic themselves
-by providing a password. It would be an improvement for the password authentication of
-a service to be more atomic such that each service for each team has a password. Even if
-a team discovers a password for their service it would help minimize the affect a team
-could take advantage on scoring.
+Even though the communication between base functionality and the Score Keeper
+used SSL to transmit data across the network securely, services still had to
+authenticate themselves by providing a password. It would be an improvement for
+the password authentication of a service to be more automatic such that each
+service for each team has a password. Even if a team discovers a password for
+their service it would help minimize the affect a team could take advantage on
+scoring.
 
 \subsubsection{Scoring Metrics}
-Keeping the CTF to the same format as the Star Trek Scenario ~\ref{stscenario} it is
-hard to have a fair and balanced scoring scheme. If you can generate a flag
-capturing means of qualifying for points it is a bit easier however if the game play 
-is similar to then there needs to be a better metric than just checking the
-service up times. It would definitely be a factor in the score but shouldn't
-really be the majority of the score.
+Keeping the CTF to the same format as the Star Trek Scenario
+(section ~\ref{stscenario}) it is hard to have a fair and balanced scoring
+scheme. If you can generate a flag capturing means of qualifying for points it
+is becomes easier. However, if the game play is similar then there needs to be a
+better metric than just checking service up times. It would definitely be a
+factor in the score but shouldn't really be the majority of the score.
 
 \section{Other Suggestions And Things to Avoid}
 For things specific to our and possible future CTFs at Cal Poly, the following
@@ -1007,10 +1012,10 @@ been covered in a previous section or are important enough to be reiterated:
     conjunction with the 101 sessions). Be sure to get into the various
     department mailing lists (CSC, CPE, etc.). Posters should be up no later
     than two weeks prior to the competition.
-    \item \textbf{No Experience Necessary?} We've tried using it in while
+    \item \textbf{No Experience Necessary} We've tried using it while
     advertising for both competitions, but no matter what, it didn't seem to
     help get the crowds we expected. There may be varying understandings of the
-    phrase, but something along the same lines should stressed to those wary
+    phrase, but something along the same lines should be stressed to those wary
     to participate.
     \item \textbf{Room Reservations} Reserve Bonderson rooms WELL in advance and
     confirm the reservation at least a month out. Don't forget to double check
@@ -1021,26 +1026,28 @@ been covered in a previous section or are important enough to be reiterated:
     However, use best fit (least number of conflicts) when picking a date
     knowing no weekend you chose is ever going to be perfect. Mind the holiday
     weekends, midterms, sporting events, or other club functions.
-    \item \textbf{No all nighters}. It should go without saying. You're mainly
-    going to be crashing and you'd rather be up all night during the
-    competition rather than working on only a few hours of sleep and heading
+    \item \textbf{No all Nighters}. It should go without saying. You're mainly
+    going to be thrashing and you'd rather be up all night during the
+    competition than working on only a few hours of sleep and heading
     towards 56 hours without sleep.
-    \item \textbf{Documentation} You're probably going to writing a report
+    \item \textbf{Documentation} You're probably going to be writing a report
     (maybe even one like this) and documenting before you begin work (ideally)
     or while you're working will greatly help in the future.
 \end{itemize}
 
 \section{Conclusion}
 There was not enough time between the two of us to complete everything for both
-competitions. We were not able to write perfect code as suggested in 'Hosting a Hacking 
-Challenge' \cite{HostingHackingChallenge} and some of our base designs fell apart. 
-Creating a more thought through design and robust CTF while meeting our main objectives 
-~\ref{MainObjectives} would require a larger development team and having at least 
-two quarters for thorough testing and development. With the current lack of security classes
-within the Computer Science Department it is highly advised to provide security workshops 
-related to the upcoming CTF. We were able to meet our over arching 
-objectives by generating interest amongst our peers to participate in CTFs and we may 
-potentially have enough interest to start an official Cal Poly CTF team in the near future.
+competitions. We were not able to write perfect code as suggested in 'Hosting a
+Hacking Challenge' \cite{HostingHackingChallenge} and some of our base designs
+fell apart. Creating a more thought out design and robust CTF while meeting
+our main objectives (section ~\ref{MainObjectives}) would require a larger
+development team and having at least two quarters for thorough testing and
+development. With the current lack of security classes within the Computer
+Science Department it is highly advised to provide security workshops related to
+the upcoming CTFs. We were able to meet our over arching objectives by
+generating interest amongst our peers to participate in CTFs and we may
+potentially have enough interest to start an official Cal Poly CTF team in the
+near future.
 
 \newpage
 \nocite{*}
